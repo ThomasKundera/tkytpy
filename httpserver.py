@@ -26,15 +26,15 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
     logging.debug("HttpHandle:do_POST: Received data:\n"+str(post_data_bytes))
     post_data_str = post_data_bytes.decode("UTF-8")
     js=json.loads(post_data_str)
-    print(js)
+    #js2=json.loads(js) # FIXME: Why?
 
-    EventHandler().add_video(js)
+    response=json.dumps(EventHandler().answer(js))
 
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
     self.end_headers()
 
-    response=EventHandler().get_video_list()
+    print(response)
 
     self.wfile.write(response.encode(encoding='utf_8'))
     logging.debug("HttpHandle:do_POST: END")
@@ -46,13 +46,19 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     self.tkyt=tkyt
     return
 
-  def add_video(self,js):
-    yid=js['ytid']
+  def answer(self,js):
+    cmd=js['command']
+    if cmd == 'get_video_list':
+      return self.get_video_list()
+    if cmd == 'add_video':
+      return self.add_video(js['ytid'])
+
+  def add_video(self,yid):
     self.tkyt.add_video(yid)
-    return
+    return { 'status': 'OK' }
 
   def get_video_list(self):
-    return json.dumps(self.tkyt.get_video_list())
+    return self.tkyt.get_video_list()
 
 
 class HttpServer:
