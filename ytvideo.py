@@ -48,6 +48,7 @@ class YTVideo(YTVideoRecord):
       'yid'  :          self.yid,
       'url'  :          self.url,
       'title':          self.title,
+      'thumb_url_s':    self.thumb_url_s,
       'viewcount':      self.viewcount,
       'commentcount':   self.commentcount,
       'last_refreshed': self.last_refreshed.timestamp()
