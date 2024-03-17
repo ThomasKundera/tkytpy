@@ -57,16 +57,15 @@ class YTVideoRecord(Base):
     dbsession.add(v)
     request=youtube.videos().list(part='snippet,statistics', id=self.yid)
     rawytdata = request.execute()
-    if len(v.rawytdata['items']) != 1:
+    if len(rawytdata['items']) != 1:
       v.valid=False
     else:
-      rawytdatajson=json.dumps(v.rawytdata)
       #print(v.rawytdatajson)
       #print(v.rawytdata)
-      v.title=v.rawytdata['items'][0]['snippet']['title']
-      v.thumb_url_s=rawytdata['items'][0]['snippet']['thumbnails']['default']['url']
-      v.viewcount=rawytdata['items'][0]['statistics']['viewcount']
-      v.commentcount=rawytdata['items'][0]['statistics']['commentcount']
+      v.title       =rawytdata['items'][0]['snippet']['title']
+      v.thumb_url_s =rawytdata['items'][0]['snippet']['thumbnails']['default']['url']
+      v.viewcount   =rawytdata['items'][0]['statistics']['viewCount']
+      v.commentcount=rawytdata['items'][0]['statistics']['commentCount']
       v.populated=True
       v.last_refreshed=datetime.datetime.now()
     dbsession.commit()
@@ -75,10 +74,9 @@ class YTVideoRecord(Base):
   def populate_variables_dummy(self):
     self.populated     = False
     self.title         = self.url
-    self.rawytdata     = None
     self.thumb_url_s   = None
-    self.viewcount=0
-    self.commentcount=0
+    self.viewcount     = 0
+    self.commentcount  = 0
     self.watch_new_threads=True
     self.suspended=False
     self.last_refreshed   =None
