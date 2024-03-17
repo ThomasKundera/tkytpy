@@ -2,5 +2,5 @@
 
 class FileStorage:
   def __init__(self):
+    #self.datadir=datadir
     return
-
