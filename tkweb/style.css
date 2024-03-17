@@ -1,0 +1,9 @@
+div.video {
+    border: 3px solid;
+    border-color: #FF00AA;
+    padding: 5px;
+}
+
+div.vcontrol {
+    float: right;
+}

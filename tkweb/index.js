@@ -4,16 +4,39 @@ function populateVideoList(obj) {
   videodiv.innerHTML = "";
   const ytvlist = obj.ytvlist;
 
-  const myli = document.createElement("li");
+  const mvldiv = document.createElement("div");
+  mvldiv.setAttribute('class','videolist');
   for (const ytv of ytvlist) {
-    const myul = document.createElement("ul");
-    const mya = document.createElement("a");
-    mya.textContent = ytv.title;
-    mya.setAttribute('href',ytv.url)
-    myul.appendChild(mya)
-    myli.appendChild(myul)
+    const mdv = document.createElement("div");
+    mdv.setAttribute('class','video');
+
+    const ma1 = document.createElement("a");
+    const mi=document.createElement("img");
+    mi.setAttribute('src',ytv.thumb_url_s);
+    mi.setAttribute('width',"120");
+    mi.setAttribute('height',"90");
+    ma1.appendChild(mi);
+    mdv.appendChild(ma1);
+
+    const ma2 = document.createElement("a");
+    ma2.textContent = ytv.title;
+    ma2.setAttribute('href',"/video.html?yid="+ytv.yid)
+    mdv.appendChild(ma2)
+
+    const mdc = document.createElement("div");
+    mdc.setAttribute('class','vcontrol');
+
+    const mip = document.createElement("input");
+    mip.setAttribute('type','checkbox');
+    mip.setAttribute('id',"vmonitor");
+    mip.setAttribute('onclick',"monitor_video()");
+
+    mdc.appendChild(mip);
+    mdv.appendChild(mdc)
+
+    mvldiv.appendChild(mdv)
   }
-  videodiv.appendChild(myli);
+  videodiv.appendChild(mvldiv);
 }
 
 
