@@ -12,5 +12,6 @@ class FieldStorage:
     dbsession=SqlSingleton().mksession()
     vl={}
     for v in dbsession.query(YTVideo):
+      v.resurect()
       vl[v.yid]=v
     return vl

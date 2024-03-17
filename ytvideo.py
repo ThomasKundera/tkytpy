@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import requests
 
 from ytqueue import YtQueue, YtTask
@@ -29,11 +30,8 @@ class YTVideo(YTVideoRecord):
     super().__init__(self.yid)
 
   def resurect(self):
+    logging.debug("YTVideo.resurect: START: "+self.yid)
     if not self.valid: return
-    if not self.rawytdatajson:
-      self.populate_variables_dummy()
-    print("- "+self.rawytdatajson+" -")
-    self.rawytdata=json.loads(self.rawytdatajson)
     if self.populated: return
     self.call_populate()
 

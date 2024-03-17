@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+import datetime
 import json
 import sqlalchemy
-from sqlalchemy_utils import JSONType
 from sqlalchemy.orm import Session
 
 from sqlsingleton import SqlSingleton, Base
@@ -12,14 +12,18 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTVideoRecord(Base):
-  __tablename__ = 'ytvideos3'
-  yid           = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
-  valid         = sqlalchemy.Column(sqlalchemy.Boolean)
-  populated     = sqlalchemy.Column(sqlalchemy.Boolean)
-  url           = sqlalchemy.Column(sqlalchemy.Unicode(100))
-  title         = sqlalchemy.Column(sqlalchemy.Unicode(200))
-  thumb_url_s   = sqlalchemy.Column(sqlalchemy.Unicode(100))
-  rawytdatajson = sqlalchemy.Column(           JSONType)
+  __tablename__ = 'ytvideos5'
+  yid               = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
+  valid             = sqlalchemy.Column(sqlalchemy.Boolean)
+  populated         = sqlalchemy.Column(sqlalchemy.Boolean)
+  url               = sqlalchemy.Column(sqlalchemy.Unicode(100))
+  title             = sqlalchemy.Column(sqlalchemy.Unicode(200))
+  thumb_url_s       = sqlalchemy.Column(sqlalchemy.Unicode(100))
+  viewcount         = sqlalchemy.Column(sqlalchemy.Integer)
+  commentcount      = sqlalchemy.Column(sqlalchemy.Integer)
+  last_refreshed    = sqlalchemy.Column(sqlalchemy.DateTime)
+  watch_new_threads = sqlalchemy.Column(sqlalchemy.Boolean)
+  suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
 
   def __init__(self,yid):
     self.yid=yid.strip()
@@ -30,7 +34,6 @@ class YTVideoRecord(Base):
     self.populated        =o.populated
     self.url              =o.url
     self.title            =o.title
-    self.rawytdatajson    =o.rawytdatajson
     self.thumb_url_s=o.thumb_url_s
 
   def db_create_or_load(self):
@@ -53,15 +56,19 @@ class YTVideoRecord(Base):
     v=dbsession.query(YTVideoRecord).get(self.yid)
     dbsession.add(v)
     request=youtube.videos().list(part='snippet,statistics', id=self.yid)
-    v.rawytdata = request.execute()
+    rawytdata = request.execute()
     if len(v.rawytdata['items']) != 1:
       v.valid=False
     else:
-      v.rawytdatajson=json.dumps(v.rawytdata)
+      rawytdatajson=json.dumps(v.rawytdata)
       #print(v.rawytdatajson)
       #print(v.rawytdata)
       v.title=v.rawytdata['items'][0]['snippet']['title']
+      v.thumb_url_s=rawytdata['items'][0]['snippet']['thumbnails']['default']['url']
+      v.viewcount=rawytdata['items'][0]['statistics']['viewcount']
+      v.commentcount=rawytdata['items'][0]['statistics']['commentcount']
       v.populated=True
+      v.last_refreshed=datetime.datetime.now()
     dbsession.commit()
     dbsession.close()
 
@@ -69,6 +76,10 @@ class YTVideoRecord(Base):
     self.populated     = False
     self.title         = self.url
     self.rawytdata     = None
-    self.thumb_url_s   = ""
-    self.rawytdatajson = "{}"
+    self.thumb_url_s   = None
+    self.viewcount=0
+    self.commentcount=0
+    self.watch_new_threads=True
+    self.suspended=False
+    self.last_refreshed   =None
 
