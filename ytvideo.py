@@ -45,9 +45,12 @@ class YTVideo(YTVideoRecord):
 
   def get_dict(self):
     return {
-      'yid'  : self.yid,
-      'url'  : self.url,
-      'title': self.title
+      'yid'  :          self.yid,
+      'url'  :          self.url,
+      'title':          self.title,
+      'viewcount':      self.viewcount,
+      'commentcount':   self.commentcount,
+      'last_refreshed': self.last_refreshed.timestamp()
       }
 
   def __str__(self):
@@ -55,9 +58,9 @@ class YTVideo(YTVideoRecord):
 
   def dump(self):
     return {
-      'valid': self.valid,
+      'valid':     self.valid,
       'populated': self.populated,
-      'yid'  : self.yid,
-      'url'  : self.url,
-      'title': self.title
-      }
+      'yid'  :     self.yid,
+      'url'  :     self.url,
+      'title':     self.title,
+    }
