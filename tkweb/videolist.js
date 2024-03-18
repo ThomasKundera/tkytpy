@@ -1,4 +1,3 @@
-
 function populateVideoList(obj) {
   const videodiv = document.querySelector("#videodiv");
   videodiv.innerHTML = "";
@@ -61,6 +60,32 @@ async function add_video() {
     console.error(e);
   }
 }
+
+// Take over form submission
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  add_video();
+});
+
+async function update_video_list() {
+  try {
+    const response = await fetch("http://localhost:8000/post", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: ('{ "command": "get_video_list" }')
+    });
+    const yidtext = await response.text();
+    const yidjson=JSON.parse(yidtext);
+    populateVideoList(yidjson);
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 
 // Take over form submission
 form.addEventListener("submit", (event) => {
