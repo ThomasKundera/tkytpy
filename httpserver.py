@@ -52,6 +52,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.get_video_list()
     if cmd == 'add_video':
       return self.add_video(js['ytid'])
+    if cmd == 'get_main_stuff':
+      return self.get_main_stuff()
 
   def add_video(self,yid):
     self.tkyt.add_video(yid)
@@ -60,6 +62,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
   def get_video_list(self):
     return self.tkyt.get_video_list()
 
+  def get_main_stuff(self):
+    return { 'status': 'OK' }
 
 class HttpServer:
   def __init__(self,tkyt):
