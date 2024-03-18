@@ -10,43 +10,47 @@ import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-class YTVideoRecord3(Base):
-  __tablename__ = 'ytvideos3'
-  yid           = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
-  valid         = sqlalchemy.Column(sqlalchemy.Boolean)
-  populated     = sqlalchemy.Column(sqlalchemy.Boolean)
-  url           = sqlalchemy.Column(sqlalchemy.Unicode(100))
-  title         = sqlalchemy.Column(sqlalchemy.Unicode(200))
-  thumb_url_s   = sqlalchemy.Column(sqlalchemy.Unicode(100))
-  rawytdatajson = sqlalchemy.Column(           JSONType)
+class YTVideoRecord5(Base):
+  __tablename__ = 'ytvideos5'
+  yid               = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
+  valid             = sqlalchemy.Column(sqlalchemy.Boolean)
+  populated         = sqlalchemy.Column(sqlalchemy.Boolean)
+  url               = sqlalchemy.Column(sqlalchemy.Unicode(100))
+  title             = sqlalchemy.Column(sqlalchemy.Unicode(200))
+  thumb_url_s       = sqlalchemy.Column(sqlalchemy.Unicode(100))
+  viewcount         = sqlalchemy.Column(sqlalchemy.Integer)
+  commentcount      = sqlalchemy.Column(sqlalchemy.Integer)
+  last_refreshed    = sqlalchemy.Column(sqlalchemy.DateTime)
+  watch_new_threads = sqlalchemy.Column(sqlalchemy.Boolean)
+  suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
 
   def __init__(self,yid):
     self.yid=yid.strip()
     self.db_create_or_load()
 
-  def copy_to(self,o):
-    o.valid            =self.valid
-    o.populated        =self.populated
-    o.url              =self.url
-    o.title            =self.title
-    o.thumb_url_s      =self.thumb_url_s
+  def copy_from(self,o):
+    self.valid             = o.valid
+    self.populated         = o.populated
+    self.url               = o.url
+    self.title             = o.title
+    self.thumb_url_s       = o.thumb_url_s
+    self.viewcount         = o.viewcount
+    self.commentcount      = o.commentcount
+    self.last_refreshed    = o.last_refreshed
+    self.watch_new_threads = o.watch_new_threads
+    self.suspended         = o.suspended
 
-  def db_create_or_load(self):
-    dbsession=Session.object_session(self)
-    if not dbsession:
-      dbsession=SqlSingleton().mksession()
-    v=dbsession.query(YTVideoRecord).get(self.yid)
-    if not v:
-      print("New video: "+self.yid)
-      dbsession.add(self)
-      self.populate_variables_dummy()
-    else:
-      self.copy_from(v)
-    if not self.populated:
-      self.call_populate()
-    dbsession.commit()
+  def copy_to(self,o):
+    o.valid             = self.valid
+    o.populated         = self.populated
+    o.url               = self.url
+    o.title             = self.title
+    o.thumb_url_s       = self.thumb_url_s
+    o.viewcount         = self.viewcount
+    o.commentcount      = self.commentcount
+    o.lastrefreshed     = self.last_refreshed
+    o.monitor           = self.watch_new_threads
+    o.suspended         = self.suspended
 
 def init_db():
   Base.metadata.create_all()
@@ -54,11 +58,11 @@ def init_db():
 
 
 def migrates(dbsession):
-  for v3 in dbsession.query(YTVideoRecord3):
-    v5=YTVideoRecord(v3.yid)
-    v3.populated=False
-    bsession.add(v5)
-    v3.copy_to(v5)
+  for v5 in dbsession.query(YTVideoRecord5):
+    v06=YTVideoRecord(v5.yid)
+    v5.populated=False
+    dbsession.add(v06)
+    v5.copy_to(v06)
 
 
 # --------------------------------------------------------------------------

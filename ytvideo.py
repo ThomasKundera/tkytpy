@@ -4,6 +4,8 @@ import requests
 
 from ytqueue import YtQueue, YtTask
 from ytvideorecord import YTVideoRecord
+from ytcommentsmonitor import YTCommentsMonitor
+
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -28,6 +30,8 @@ class YTVideo(YTVideoRecord):
     self.valid=True
     self.populated= False
     super().__init__(self.yid)
+    if not self.populated:
+      self.call_populate()
 
   def resurect(self):
     logging.debug("YTVideo.resurect: START: "+self.yid)
@@ -43,6 +47,10 @@ class YTVideo(YTVideoRecord):
     task=YtTask('populate:'+self.yid,self.queued_populate)
     YtQueue().add(task)
 
+  def starts_comments_monitor(self):
+    YTCommentsMonitor().add(self.yid)
+    return
+
   def get_dict(self):
     return {
       'yid'  :          self.yid,
@@ -51,7 +59,7 @@ class YTVideo(YTVideoRecord):
       'thumb_url_s':    self.thumb_url_s,
       'viewcount':      self.viewcount,
       'commentcount':   self.commentcount,
-      'last_refreshed': self.last_refreshed.timestamp()
+      'last_refreshed': self.lastrefreshed.timestamp()
       }
 
   def __str__(self):
