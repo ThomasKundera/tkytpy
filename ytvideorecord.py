@@ -27,7 +27,7 @@ class YTVideoRecord(Base):
   monitor           = sqlalchemy.Column(sqlalchemy.Boolean)
   suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
 
-  def __init__(self,yid,populate=True):
+  def __init__(self,yid):
     self.yid=yid.strip()
     self.db_create_or_load()
 

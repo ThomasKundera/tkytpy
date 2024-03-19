@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import tksingleton
 
-import ytvideolist
+from ytvideolist       import YTVideoList
 
 class TkYt(metaclass=tksingleton.SingletonMeta):
   def __init__(self,field_storage):
@@ -9,7 +9,7 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
     return
 
   def setup(self):
-    self.videos=ytvideolist.YTVideoList(self.field_storage)
+    self.videos=YTVideoList(self.field_storage)
 
   def add_video(self,yid):
     self.videos.add_from_yid(yid)

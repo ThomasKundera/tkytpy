@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from cmdnview     import CmdNView
-from filestorage  import FileStorage
-from fieldstorage import FieldStorage
-from tkyt         import TkYt
+from cmdnview          import CmdNView
+from filestorage       import FileStorage
+from fieldstorage      import FieldStorage
+from tkyt              import TkYt
 
 class Manager:
   def __init__(self):
