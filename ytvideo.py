@@ -2,10 +2,7 @@
 import json
 import requests
 
-from ytqueue import YtQueue, YtTask
 from ytvideorecord import YTVideoRecord
-from ytcommentsmonitor import YTCommentsMonitor
-
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -33,23 +30,9 @@ class YTVideo(YTVideoRecord):
     if not self.populated:
       self.call_populate()
 
-  def resurect(self):
-    logging.debug("YTVideo.resurect: START: "+self.yid)
-    if not self.valid: return
-    if self.populated: return
-    self.call_populate()
-
   def is_valid_id(self):
     if (len(self.yid) != 11): return False
     return valid_url(self.url)
-
-  def call_populate(self):
-    task=YtTask('populate:'+self.yid,self.queued_populate)
-    YtQueue().add(task)
-
-  def starts_comments_monitor(self):
-    YTCommentsMonitor().add(self.yid)
-    return
 
   def get_dict(self):
     return {
