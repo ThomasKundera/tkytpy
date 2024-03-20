@@ -7,6 +7,9 @@ from functools import total_ordering
 
 import tksingleton
 
+import logging, sys
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
 @total_ordering
 class TkTask:
   def __init__(self,task,priority=0,semaphore=None):
@@ -54,7 +57,7 @@ class QueueWork(metaclass=tksingleton.SingletonMeta):
   def worker(self):
     while True:
       item = self.q.get()
-      print(f'Working on {item} ( about '+str(self.q.qsize())+' elements remaining )')
+      logging.debug("Working on"+str(item)+". ( about "+str(self.q.qsize())+" elements remaining )")
       self.do_work(item)
       self.q.task_done()
       #time.sleep(1)
@@ -80,7 +83,11 @@ class QueueWorkUniq(QueueWork):
 
   def add(self,item):
     if item.tid in self.taskdict:
-      print("Task {item} already in queue")
+      logging.debug("Task "+str(item)+" already in queue"
+                    +"about "+str(self.q.qsize())+" elements remaining"+
+                    str(self.taskdict))
+      if (item.semaphore):
+        item.semaphore.release()
       return False
     self.taskdict[item.tid]=item.tid
     super().add(item)
