@@ -4,6 +4,7 @@ import json
 import sqlalchemy
 from sqlalchemy.orm import Session
 
+from ytqueue import YtQueue, YtTask
 from sqlsingleton import SqlSingleton, Base
 
 import logging, sys
@@ -57,6 +58,31 @@ class YTVideoRecord(Base):
     else:
       self.copy_from(v)
     dbsession.commit()
+
+
+  def RefreshPriority(self):
+    # Lower the more prioritized, number should roughlt reflects
+    # time (in second) before next update would be nice.
+    # Refresh priority should depends heavily on interractive accesses
+    # but we don't have that metric yet (FIXME)
+
+    if (not self.populated):
+      return 0
+    if (not self.monitor):
+      returnsys.maxsize # Max easy to handle number
+    if (self.suspended):
+      return sys.maxsize
+    # From here, without metrics, it's fuzzy
+    # Lets use just time to last refresh, and tagetting once a month.
+    Δt=datetime.datetime.now()-self.lastrefreshed
+    if (Δt.total_seconds() > 30*24*3600):
+      return 3600 # lets do that under an hour
+    return sys.maxsize
+
+  def call_populate(self,priority=0):
+    task=YtTask('populate:'+self.yid,self.queued_populate,priority)
+    YtQueue().add(task)
+
 
   def queued_populate(self,youtube):
     dbsession=SqlSingleton().mksession()
