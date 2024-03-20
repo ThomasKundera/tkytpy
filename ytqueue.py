@@ -27,7 +27,9 @@ class YtQueue(tkqueue.QueueWorkUniq):
 
   def do_work(self,item):
     time.sleep(10) # This impose less than 10.000 calls per day.
+    # FIXME: using etags in headers is a must.
     item.run(self.youtube)
+    del self.taskdict[item.tid]
 
 class TestClass:
   def __init__(self,yid):
