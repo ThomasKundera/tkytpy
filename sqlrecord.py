@@ -49,8 +49,8 @@ class SqlRecord:
       setattr(self, k, value)
 
   def call_populate(self,priority=0,semaphore=None):
-    logging.debug(type(self).__name__+".populate(): START")
-    task=YtTask('populate:'+type(self).__name__+"-"+self.get_id(),self.queued_populate,priority,semaphore)
+    logging.debug(type(self).__name__+".call_populate(): START")
+    task=YtTask('populate:'+type(self).__name__+"-"+self.get_id(),self.populate,priority,semaphore)
     YtQueue().add(task)
 
   def get_priority(self):
@@ -70,7 +70,7 @@ class SqlRecord:
     s+=" } "
     return s
 
-  def queued_populate(self,youtube):
+  def populate(self,youtube):
     return
 
   def populate_default(self):
