@@ -52,6 +52,7 @@ class SqlRecord:
     logging.debug(type(self).__name__+".call_populate(): START")
     task=YtTask('populate:'+type(self).__name__+"-"+self.get_id(),self.populate,priority,semaphore)
     YtQueue().add(task)
+    logging.debug(type(self).__name__+".call_populate(): END")
 
   def get_priority(self):
     logging.debug(type(self).__name__+".get_priority(): START")
