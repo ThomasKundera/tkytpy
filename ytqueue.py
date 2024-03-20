@@ -37,7 +37,7 @@ class TestClass:
     YtQueue().add(task)
 
   def populate(self,youtube):
-    request = youtube.videos().list(part='snippet,statistics', id=self.yid)
+    request=youtube.commentThreads().list(part='snippet',videoId=self.yid,maxResults=100,textFormat='html')
     print("\n-----------------\n")
     print(request.execute())
     print("\n-----------------\n")
@@ -45,11 +45,10 @@ class TestClass:
 # --------------------------------------------------------------------------
 def main():
   logging.debug("tkyoutube test: START")
-
   t1=TestClass('j2GXgMIYgzU')
-  t1=TestClass('iphcyNWFD10')
-  t1=TestClass('aBr2kKAHN6M')
-  t1=TestClass('aBr2kKAHN6M')
+  #t1=TestClass('iphcyNWFD10')
+  #t1=TestClass('aBr2kKAHN6M')
+  #t1=TestClass('aBr2kKAHN6M')
 
   YtQueue().join()
   logging.debug("tkyoutube test: END")
