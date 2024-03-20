@@ -14,7 +14,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentWorkerRecord(SqlRecord,Base):
-  __tablename__            = 'ytcommentworkerrecord0_1'
+  __tablename__            = 'ytcommentworkerrecord0_2'
   tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
@@ -22,6 +22,15 @@ class YTCommentWorkerRecord(SqlRecord,Base):
 
   def __init__(self,dbsession,tid,commit=True):
     self.tid=tid
+    super().__init__(dbsession,commit)
+
+  def set_etag(self,etag,commit=True):
+    if (commit):
+      dbsession=get_dbsession(self)
+    self.etag=etag
+    if (commit):
+      dbsession.commit()
+
 
   def get_priority(self):
     # FIXME: refreshing priority value is also complex
@@ -49,7 +58,7 @@ def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   ycwd=dbsession.query(YTCommentWorkerRecord)
-  for ycw in ytwd:
+  for ycw in ycwd:
     ycw.call_populate()
   YtQueue().join()
 
