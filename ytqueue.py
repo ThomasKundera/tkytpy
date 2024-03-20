@@ -12,7 +12,8 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class YtTask(tkqueue.TkTaskUniq):
   def run(self,youtube):
     self.task(youtube)
-
+    if (self.semaphore):
+      self.semaphore.release()
 
 # There will only be one instance of this,
 # as it derivates from SingletonMeta
@@ -32,15 +33,15 @@ class TestClass:
   def __init__(self,yid):
     self.yid=yid
     time.sleep(1)
-    task=YtTask('populate:'+self.yid,self.populate_variables_from_youtube)
+    task=YtTask('populate:'+self.yid,self.populate)
     YtQueue().add(task)
 
-  def populate_variables_from_youtube(self,youtube):
+  def populate(self,youtube):
     request = youtube.videos().list(part='snippet,statistics', id=self.yid)
     print("\n-----------------\n")
     print(request.execute())
     print("\n-----------------\n")
-
+")
 
 # --------------------------------------------------------------------------
 def main():
