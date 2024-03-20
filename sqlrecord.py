@@ -76,25 +76,11 @@ class SqlRecord:
   def populate_default(self):
     return
 
-class TestRecord(SqlRecord,Base):
-  __tablename__ = 'test2'
-  name              = sqlalchemy.Column(sqlalchemy.Unicode(100),primary_key=True)
-  pp                = sqlalchemy.Column(sqlalchemy.Unicode(200))
-  pa                = sqlalchemy.Column(sqlalchemy.Unicode(200))
-  pe                = sqlalchemy.Column(sqlalchemy.Unicode(200))
-
-  def __init__(self,dbsession,name):
-    print("TestRecord: __init__("+name+")")
-    self.name=name
-    super().__init__(dbsession)
-
-
 # --------------------------------------------------------------------------
 def main():
+  from sqltestrecord import TestRecord
   Base.metadata.create_all()
   tr1=get_dbobject(TestRecord,'toto')
-  print(tr1.get_id())
-  return
   tr2=get_dbobject(TestRecord,'tutu')
   tr3=get_dbobject(TestRecord,'titi')
   tr4=get_dbobject(TestRecord,'tata')
