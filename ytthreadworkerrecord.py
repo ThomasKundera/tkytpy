@@ -15,13 +15,13 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTThreadWorkerRecord(SqlRecord,Base):
-  __tablename__ = 'ytthreadworkers0_2'
+  __tablename__ = 'ytthreadworkers0_3'
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
-  firstthreadcidcandidate  = sqlalchemy.Column(sqlalchemy.Unicode(50))
+  lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   firstthreadcid           = sqlalchemy.Column(sqlalchemy.Unicode(50))
+  firstthreadcidcandidate  = sqlalchemy.Column(sqlalchemy.Unicode(50))
   nexttreadpagetoken       = sqlalchemy.Column(sqlalchemy.Unicode(200))
   nextcmtpagetoken         = sqlalchemy.Column(sqlalchemy.Unicode(200))
-  lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
 
   def __init__(self,dbsession,yid,commit=True):
     self.yid=yid
