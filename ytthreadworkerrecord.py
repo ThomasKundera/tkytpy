@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ytqueue      import YtQueue, YtTask
 from sqlsingleton import SqlSingleton, Base
-from sqlrecord    import SqlRecord
+from sqlrecord    import SqlRecord, get_dbsession
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -32,7 +32,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     # FIXME: refreshing priority value is also complex
     if not(self.lastwork):
       return 0
-    return self.lastwork-datetime.datetime(now)+3600*24*365
+    Δt=datetime.datetime.now()-self.lastwork
+    return 3600*24*365-Δt.total_seconds()
 
   def populate_default(self):
     self.nexttreadpagetoken=None
@@ -41,6 +42,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
   def populate(self,youtube):
     logging.debug("YTThreadWorkerRecord.populate(): START")
+    dbsession=get_dbsession(self)
     if not (self.firstthreadcid):
       logging.debug(type(self).__name__+".populate(): 1")
       if (not self.nexttreadpagetoken):
@@ -57,6 +59,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
         if (nbc)<100: # we have all
           self.firstthreadcid=self.firstthreadcidcandidate
+    self.lastwork=datetime.datetime.now()
+    dbsession.commit()
     logging.debug("YTThreadWorkerRecord.populate(): END")
 
 
