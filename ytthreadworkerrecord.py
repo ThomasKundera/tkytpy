@@ -4,9 +4,10 @@ import json
 import sqlalchemy
 from sqlalchemy.orm import Session
 
-from ytqueue      import YtQueue, YtTask
-from sqlsingleton import SqlSingleton, Base
-from sqlrecord    import SqlRecord, get_dbsession
+from ytqueue         import YtQueue, YtTask
+from sqlsingleton    import SqlSingleton, Base
+from sqlrecord       import SqlRecord, get_dbsession, get_dbobject
+from ytcommentrecord import YTCommentRecord
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -36,6 +37,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     return 3600*24*365-Δt.total_seconds()
 
   def populate_default(self):
+    self.firstthreadcidcandidate=None
+    self.firstthreadcid=None
     self.nexttreadpagetoken=None
     self.nextcmtpagetoken=None
     self.lastwork=None
@@ -55,8 +58,10 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         for thread in result['items']:
           tlc=thread['snippet']['topLevelComment']
           cid=tlc['id']
-          print("------------------------------"+cid)
-
+          if (not self.firstthreadcidcandidate):
+            self.firstthreadcidcandidate=cid
+          c=get_dbobject(YTCommentRecord,cid,dbsession)
+          c.fill_from_json(tlc,False)
         if (nbc)<100: # we have all
           self.firstthreadcid=self.firstthreadcidcandidate
     self.lastwork=datetime.datetime.now()
