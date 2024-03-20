@@ -4,10 +4,10 @@ import json
 import sqlalchemy
 from sqlalchemy.orm import Session
 
-from ytqueue         import YtQueue, YtTask
-from sqlsingleton    import SqlSingleton, Base
-from sqlrecord       import SqlRecord, get_dbsession, get_dbobject
-from ytcommentrecord import YTCommentRecord
+from ytqueue               import YtQueue, YtTask
+from sqlsingleton          import SqlSingleton, Base
+from sqlrecord             import SqlRecord, get_dbsession, get_dbobject
+from ytcommentworkerrecord import YTCommentWorkerRecord
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -15,7 +15,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTThreadWorkerRecord(SqlRecord,Base):
-  __tablename__ = 'ytthreadworkers0_4'
+  __tablename__ = 'ytthreadworkers0_5'
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   firstthreadcid           = sqlalchemy.Column(sqlalchemy.Unicode(50))
@@ -48,26 +48,24 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     if not (self.firstthreadcid):
       if (not self.nexttreadpagetoken):
         request=youtube.commentThreads().list(
-          part='snippet',
+          part='id',
           videoId=self.yid,
-          maxResults=100,
-          textFormat='html')
+          maxResults=100)
       else:
         request=youtube.commentThreads().list(
-          part='snippet',
+          part='id',
           videoId=self.yid,
           pageToken=self.nexttreadpagetoken,
-          maxResults=100,
-          textFormat='html')
+          maxResults=100)
       result=request.execute()
       nbc=result['pageInfo']['totalResults']
       for thread in result['items']:
-        tlc=thread['snippet']['topLevelComment']
-        cid=tlc['id']
+        tid=thread['id']
+        etag=thread['etag']
         if (not self.firstthreadcidcandidate):
-          self.firstthreadcidcandidate=cid
-        c=get_dbobject(YTCommentRecord,cid,dbsession)
-        c.fill_from_json(tlc,False)
+          self.firstthreadcidcandidate=tid
+        c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
+        c.set_etag(etag,False)
       if (nbc)<100: # we have all
         self.firstthreadcid=self.firstthreadcidcandidate
       self.nexttreadpagetoken=result['nextPageToken']
