@@ -31,7 +31,8 @@ class TestRecord(SqlRecord,Base):
     # FIXME: refreshing priority value is also complex
     if not(self.lastwork):
       return 0
-    return self.lastwork-datetime.datetime(now)+3600*24*365
+    Δt=datetime.datetime.now()-self.lastwork
+    return 3600*24*365-Δt.total_seconds()
 
   def populate_default(self):
     self.data1="something"
