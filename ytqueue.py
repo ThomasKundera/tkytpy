@@ -39,7 +39,7 @@ class TestClass:
     YtQueue().add(task)
 
   def populate(self,youtube):
-    request=youtube.commentThreads().list(part='snippet',videoId=self.yid,maxResults=100,textFormat='html')
+    request=youtube.commentThreads().list(part='id',videoId=self.yid,maxResults=100,textFormat='html')
     print("\n-----------------\n")
     print(request.execute())
     print("\n-----------------\n")
