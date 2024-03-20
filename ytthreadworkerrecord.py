@@ -67,7 +67,8 @@ def main():
   dbsession=SqlSingleton().mksession()
   ytwd=dbsession.query(YTThreadWorkerRecord)
   for ytw in ytwd:
-    print(ytw)
+    ytw.call_populate()
+  YtQueue().join()
 
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
