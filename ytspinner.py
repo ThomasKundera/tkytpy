@@ -13,8 +13,12 @@ class YTSpinner:
     logging.debug("YTSpinner.__init__(): START")
     self.field_storage=field_storage
     self.semaphore=Semaphore(1)
+
+  def run(self):
+    logging.debug("YTSpinner.run(): START")
     self.spint = Thread(target=self.spin)
     self.spint.start()
+    logging.debug("YTSpinner.run: END")
 
   def call_populate(self,item):
     logging.debug("YTSpinner.call_populate: START")
@@ -28,19 +32,26 @@ class YTSpinner:
     logging.debug("YTSpinner.queued_populate: START")
     time.sleep(10) # Just for tests
 
+  def do_spin(self):
+    logging.debug("YTSpinner.do_spin(): START")
+    ol=[]
+    od=self.field_storage.get_dict(self.cls)
+    for o in od.values():
+      p=o.get_priority()
+      ol.append((p,o))
+    ols=sorted(ol, key=lambda x: x[0])
+    if (len(ols)):
+      logging.debug("YTSpinner.do_spin(): selected "+str(ols[0]))
+      self.call_populate(ols[0])
+    logging.debug("YTSpinner.do_spin(): END")
+
   def spin(self):
     logging.debug("YTSpinner.spin: START")
     if (not self.field_storage):
       return # For tests, mostly
     while True:
-      ol=[]
-      od=self.field_storage.get_dict(self.cls)
-      for o in od.values():
-        p=o.get_priority()
-        ol.append((p,o))
-      ols=sorted(ol, key=lambda x: x[0])
-      if (len(ols)):
-        self.call_populate(ols[0])
+      time.sleep(1)
+      self.do_spin()
 
 # --------------------------------------------------------------------------
 def main():
