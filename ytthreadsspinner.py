@@ -8,7 +8,6 @@ from sqlsingleton import SqlSingleton, Base
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-from threading import get_ident
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
