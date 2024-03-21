@@ -3,8 +3,10 @@ import datetime
 import json
 import sqlalchemy
 
-from sqlsingleton import SqlSingleton, Base
-from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
+from ytauthorrecord import YTAuthorRecord
+
+from sqlsingleton   import SqlSingleton, Base
+from sqlrecord      import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -39,6 +41,11 @@ class YTCommentRecord(SqlRecord,Base):
       self.parent=snippet['parentId']
 
     self.author=snippet['authorDisplayName']
+    a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
+    if not a:
+      a=get_dbobject(YTAuthorRecord,self.author,dbsession)
+      a.fill_from_json(jscomment)
+
     self.published=datetime.datetime.strptime(snippet['publishedAt'],"%Y-%m-%dT%H:%M:%SZ")
     self.updated  =datetime.datetime.strptime(snippet['updatedAt'],"%Y-%m-%dT%H:%M:%SZ")
     if (commit):
