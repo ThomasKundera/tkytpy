@@ -43,10 +43,8 @@ class TkTaskUniq(TkTask):
     return self.tid
 
 class QueueWork(metaclass=tksingleton.SingletonMeta):
-  lastuse: datetime.datetime = None
 
   def __init__(self):
-    self.lastuse=datetime.datetime.now()
     self.q=queue.PriorityQueue()
     threading.Thread(target=self.worker, daemon=True).start()
 
