@@ -29,7 +29,9 @@ class YtQueue(tkqueue.QueueWorkUniq):
     super().__init__()
 
   def do_work(self,item):
-    Δt=datetime.datetime.now()-self.lastrun
+    now=datetime.datetime.now()
+    Δt=now-self.lastrun
+    self.lastrun=now
     st=max(self.wait_time-Δt.total_seconds(),0)
     logging.debug("YtQueue.do_work(): Sleeping "+str(st)+"s")
     time.sleep(st) # This impose less than 10.000 calls per day.
