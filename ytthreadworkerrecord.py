@@ -15,8 +15,6 @@ from ytauthorrecord        import YTAuthorRecord
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-from threading import get_ident
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTThreadWorkerRecord(SqlRecord,Base):
@@ -38,9 +36,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     Δt=datetime.datetime.now()-self.lastwork
     # Fit that between 1000 and 2000
     # FIXME
-    if (Δt.total_seconds() > 30*24*3600):
-      return max((30*24*3600-Δt.total_seconds())/3,0)
-    return sys.maxsize
+    return max((30*24*3600-Δt.total_seconds())/3,0)
+
 
   def populate_default(self):
     self.firstthreadcidcandidate=None
@@ -92,6 +89,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     else:
       time.sleep(1) # FIXME
     self.lastwork=datetime.datetime.now()
+    print("ZZWeWorked: "+self.yid+" "+str(self.lastwork))
     dbsession.commit()
     logging.debug("YTThreadWorkerRecord.populate(): END")
 
@@ -102,10 +100,12 @@ def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   ytwd=dbsession.query(YTThreadWorkerRecord)
-  for ytw in ytwd[:10]:
+  for ytw in ytwd[:2]:
     ytw.call_populate()
   YtQueue().join()
-
+  for ytw in ytwd[:2]:
+    o=dbsession.merge(ytw)
+    dbsession.commit()
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
   main()
