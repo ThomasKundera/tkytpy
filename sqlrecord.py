@@ -4,8 +4,8 @@ import json
 import sqlalchemy
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import class_mapper
-from sqlsingleton import SqlSingleton, Base
-from ytqueue      import YtQueue, YtTask
+from sqlsingleton   import SqlSingleton, Base
+from ytqueue        import YtQueue, YtTask
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
