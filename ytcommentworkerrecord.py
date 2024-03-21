@@ -5,8 +5,9 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 
 from sqlsingleton    import SqlSingleton, Base
-from sqlrecord       import SqlRecord, get_dbsession, get_dbobject
+from sqlrecord       import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
 from ytcommentrecord import YTCommentRecord
+from ytauthorrecord  import YTAuthorRecord
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -41,10 +42,10 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       return sys.maxsize
     if not(self.lastwork):
       return 0
-    Δt=datetime.datetime.now()-self.lastwork
-    # Fit that between 1000 and 2000
     # FIXME
-    return 3600*24*365-Δt.total_seconds()
+    if (Δt.total_seconds() > 30*24*3600):
+      return max((30*24*3600-Δt.total_seconds())/3,0)
+    return sys.maxsize
 
   def populate_default(self):
     self.lastwork=None
@@ -57,7 +58,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     if (self.done):
       logging.debug("YTCommentWorkerRecord.populate(): done: "+str(self.tid))
       return
-    dbsession= dbsession=SqlSingleton().mksession()
+    dbsession=SqlSingleton().mksession()
     if (not self.nextcmtpagetoken):
       request=youtube.comments().list(
         part='snippet',
@@ -76,6 +77,11 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       # adding it by hand
       comment['snippet']['videoId']=self.yid
       c.fill_from_json(comment,False)
+      name=comment['snippet']['authorDisplayName']
+      a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
+      if not a:
+        a=get_dbobject(YTAuthorRecord,name,dbsession)
+      a.fill_from_json(comment)
 
     if ('nextPageToken' in result):
        self.nexttreadpagetoken=result['nextPageToken']
