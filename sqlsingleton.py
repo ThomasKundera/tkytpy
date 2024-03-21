@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 
-from threading import get_ident
+from threading import  Semaphore, get_ident
 
 from tksecrets import localsqldb_pass
 
@@ -28,6 +28,7 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
     self.session_maker   = scoped_session(self.session_factory)
 
     self.threads_dict={}
+    self.semaphore=Semaphore(1)
     super().__init__()
 
   def mksession(self):
@@ -36,6 +37,8 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
     return (dbsession)
 
   def monitor_threads(self,dbsession):
+    # This should not be run in parallel
+    self.semaphore.acquire()
     # FIXME: the dict is never flush
     current_thread=get_ident()
     if dbsession in self.threads_dict:
@@ -53,6 +56,7 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
      #   if not s.is_active:
      #     del self.threads_dict[s]
      # except:
+    self.semaphore.release()
 
 
   def close(self):
