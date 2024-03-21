@@ -28,7 +28,7 @@ class YTCommentRecord(SqlRecord,Base):
 
   def fill_from_json(self,jscomment,commit=True):
     if (commit):
-      dbsession=get_dbsession(self)
+      dbsession= dbsession=SqlSingleton().mksession()
     self.cid =jscomment['id']
     snippet  =jscomment['snippet']
 
