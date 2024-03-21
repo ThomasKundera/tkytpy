@@ -2,17 +2,16 @@
 import datetime
 import json
 import sqlalchemy
-from sqlalchemy.orm import Session
 
-from ytqueue import YtQueue, YtTask
 from sqlsingleton import SqlSingleton, Base
+from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-class YTVideoRecord(Base):
+class YTVideoRecord(SqlRecord,Base):
   __tablename__ = 'ytvideos0_6'
   yid               = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
   valid             = sqlalchemy.Column(sqlalchemy.Boolean)
@@ -28,46 +27,18 @@ class YTVideoRecord(Base):
   monitor           = sqlalchemy.Column(sqlalchemy.Boolean)
   suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
 
-  def __init__(self,yid):
-    self.yid=yid.strip()
-    self.db_create_or_load()
+  def __init__(self,dbsession,cid,commit=True):
+    self.yid=yid
+    super().__init__(dbsession,commit)
 
-  def copy_from(self,o):
-    self.valid             = o.valid
-    self.populated         = o.populated
-    self.url               = o.url
-    self.title             = o.title
-    self.thumb_url_s       = o.thumb_url_s
-    self.viewcount         = o.viewcount
-    self.commentcount      = o.commentcount
-    self.oldcommentcount   = o.commentcount
-    self.lastrefreshed     = o.lastrefreshed
-    self.oldrefreshed      = o.oldrefreshed
-    self.monitor           = o.monitor
-    self.suspended         = o.suspended
-
-  def db_create_or_load(self):
-    dbsession=Session.object_session(self)
-    if not dbsession:
-      dbsession=SqlSingleton().mksession()
-    v=dbsession.query(YTVideoRecord).get(self.yid)
-    if not v:
-      print("New video: "+self.yid)
-      dbsession.add(self)
-      self.populate_variables_default()
-    else:
-      self.copy_from(v)
-    dbsession.commit()
-
-
-  def RefreshPriority(self):
+  def get_priority(self):
     # Lower the more prioritized, number should roughlt reflects
     # time (in second) before next update would be nice.
     # Refresh priority should depends heavily on interractive accesses
     # but we don't have that metric yet (FIXME)
 
     if (not self.populated):
-      return 0
+      return 100
     if (not self.monitor):
       returnsys.maxsize # Max easy to handle number
     if (self.suspended):
@@ -75,38 +46,32 @@ class YTVideoRecord(Base):
     # From here, without metrics, it's fuzzy
     # Lets use just time to last refresh, and tagetting once a month.
     Δt=datetime.datetime.now()-self.lastrefreshed
+    # FIXME
     if (Δt.total_seconds() > 30*24*3600):
-      return 3600 # lets do that under an hour
+      return 3600*24*365-Δt.total_seconds()
     return sys.maxsize
 
-  def call_populate(self,priority=0):
-    task=YtTask('populate:'+self.yid,self.queued_populate,priority)
-    YtQueue().add(task)
 
-
-  def queued_populate(self,youtube):
+  def populate(self,youtube):
+    logging.debug("YTVideoRecord.populate(): START")
     dbsession=SqlSingleton().mksession()
-    v=dbsession.query(YTVideoRecord).get(self.yid)
-    dbsession.add(v)
     request=youtube.videos().list(part='snippet,statistics', id=self.yid)
     rawytdata = request.execute()
     if len(rawytdata['items']) != 1:
-      v.valid=False
+      self.valid=False
     else:
-      #print(v.rawytdatajson)
-      #print(v.rawytdata)
-      v.title          =rawytdata['items'][0]['snippet']['title']
-      v.thumb_url_s    =rawytdata['items'][0]['snippet']['thumbnails']['default']['url']
-      v.viewcount      =rawytdata['items'][0]['statistics']['viewCount']
-      v.oldcommentcount=v.commentcount
-      v.commentcount   =rawytdata['items'][0]['statistics']['commentCount']
-      v.populated=True
-      v.oldrefreshed=v.lastrefreshed
-      v.lastrefreshed=datetime.datetime.now()
+      self.title          =rawytdata['items'][0]['snippet']['title']
+      self.thumb_url_s    =rawytdata['items'][0]['snippet']['thumbnails']['default']['url']
+      self.viewcount      =rawytdata['items'][0]['statistics']['viewCount']
+      self.oldcommentcount=self.commentcount
+      self.commentcount   =rawytdata['items'][0]['statistics']['commentCount']
+      self.populated=True
+      self.oldrefreshed=self.lastrefreshed
+      self.lastrefreshed=datetime.datetime.now()
     dbsession.commit()
     dbsession.close()
 
-  def populate_variables_default(self):
+  def populate_default(self):
     self.populated       = False
     self.title           = self.url
     self.thumb_url_s     = None
@@ -117,3 +82,20 @@ class YTVideoRecord(Base):
     self.suspended       = False
     self.lastrefreshed   = None
     self.oldrefreshed    = None
+
+
+# --------------------------------------------------------------------------
+def main():
+  from ytqueue         import YtQueue, YtTask
+  Base.metadata.create_all()
+  dbsession=SqlSingleton().mksession()
+  yvd=dbsession.query(YTVideoRecord)
+  for v in yvd[:5]:
+    v.call_populate()
+  YtQueue().join()
+
+# --------------------------------------------------------------------------
+if __name__ == '__main__':
+  main()
+
+
