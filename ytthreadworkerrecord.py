@@ -7,9 +7,10 @@ from sqlalchemy.orm import Session
 
 from ytqueue               import YtQueue, YtTask
 from sqlsingleton          import SqlSingleton, Base
-from sqlrecord             import SqlRecord, get_dbsession, get_dbobject
+from sqlrecord             import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
 from ytcommentworkerrecord import YTCommentWorkerRecord
 from ytcommentrecord       import YTCommentRecord
+from ytauthorrecord        import YTAuthorRecord
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -37,7 +38,9 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     Δt=datetime.datetime.now()-self.lastwork
     # Fit that between 1000 and 2000
     # FIXME
-    return 3600*24*365-Δt.total_seconds()
+    if (Δt.total_seconds() > 30*24*3600):
+      return max((30*24*3600-Δt.total_seconds())/3,0)
+    return sys.maxsize
 
   def populate_default(self):
     self.firstthreadcidcandidate=None
@@ -75,6 +78,12 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         c.fill_from_json(tlc,False)
         c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
         c.set_yid_etag(self.yid,etag,False)
+
+        name=tlc['snippet']['authorDisplayName']
+        a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
+        if not a:
+          a=get_dbobject(YTAuthorRecord,name,dbsession)
+        a.fill_from_json(tlc)
 
       if ('nextPageToken' in result):
         self.nexttreadpagetoken=result['nextPageToken']
