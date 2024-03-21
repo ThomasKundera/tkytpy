@@ -10,6 +10,11 @@ class DataSpinnersManager:
     self.yts=YTThreadsSpinner()
     self.ycs=YTCommentsSpinner()
 
+  def run(self):
+    self.yvs.run()
+    self.yts.run()
+    self.ycs.run()
+
 # --------------------------------------------------------------------------
 def main():
   dsm=DataSpinnersManager()
