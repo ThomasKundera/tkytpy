@@ -43,9 +43,11 @@ class YTSpinner:
       p=o.get_priority()
       ol.append((p,o))
     ols=sorted(ol, key=lambda x: x[0])
-    if (len(ols)):
+    if (len(ols) and ols[0][0] < 1000000): # FIXME
       logging.debug("YTSpinner.do_spin(): selected "+str(ols[0]))
       self.call_populate(ols[0])
+    else:
+      time.sleep(20) # FIXME
     logging.debug("YTSpinner.do_spin(): END")
 
   def spin(self):
