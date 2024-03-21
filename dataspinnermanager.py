@@ -18,6 +18,8 @@ class DataSpinnersManager:
 # --------------------------------------------------------------------------
 def main():
   from fieldstorage      import FieldStorage
+  from ytqueue           import YtQueue
+  YtQueue(100) # This is for background download in standalone.
   field_storage = FieldStorage()
   dsm=DataSpinnersManager(field_storage)
   dsm.run()
