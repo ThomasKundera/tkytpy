@@ -48,7 +48,6 @@ class YTSpinner:
 
   def do_spin(self):
     logging.debug("YTSpinner.do_spin(): START")
-
     ol=[]
     od=self.field_storage.get_dict(self.cls)
     for o in od.values():
@@ -59,7 +58,8 @@ class YTSpinner:
       logging.debug("YTSpinner.do_spin(): selected "+str(ols[0]))
       self.call_populate(ols[0])
     else:
-      time.sleep(20) # FIXME
+      logging.debug("YTSpinner.do_spin(): Nothing to do")
+      time.sleep(1)
     logging.debug("YTSpinner.do_spin(): END")
 
   def spin(self):
