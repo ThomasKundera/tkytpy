@@ -15,11 +15,13 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentWorkerRecord(SqlRecord,Base):
-  __tablename__            = 'ytcommentworkerrecord0_5'
+  __tablename__            = 'ytcommentworkerrecord0_6'
   tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   done                     = sqlalchemy.Column(sqlalchemy.Boolean)
+  interest_level           = sqlalchemy.Column(sqlalchemy.Integer)
+  lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
   etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
   nextcmtpagetoken         = sqlalchemy.Column(sqlalchemy.Unicode(200))
 
@@ -48,9 +50,11 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     return sys.maxsize
 
   def populate_default(self):
-    self.lastwork=None
-    self.done    =False
-    self.etag    =None
+    self.lastwork        =None
+    self.done            =False
+    self.interest_level  =0
+    self.lastcompute     =None
+    self.etag            =None
     self.nextcmtpagetoken=None
 
   def populate(self,youtube):
