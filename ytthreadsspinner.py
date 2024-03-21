@@ -22,8 +22,6 @@ class YTThreadsSpinner(YTSpinner):
     dbsession=SqlSingleton().mksession()
     for v in vl.values():
       t=get_dbobject(YTThreadWorkerRecord,v.yid,dbsession)
-    #if (v):
-      #dbsession=get_dbsession(v)
     dbsession.commit()
 
   def do_spin(self):

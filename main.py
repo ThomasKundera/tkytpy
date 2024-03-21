@@ -16,7 +16,7 @@ class Manager:
     self.cmd_n_view    = CmdNView    (self.tkyt)
 
   def run(self):
-    self.dsm.run()
+    #self.dsm.run()
     self.cmd_n_view.run()
     return
 
