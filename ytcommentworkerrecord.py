@@ -84,9 +84,10 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       a.fill_from_json(comment)
 
     if ('nextPageToken' in result):
-       self.nexttreadpagetoken=result['nextPageToken']
+      self.nexttreadpagetoken=result['nextPageToken']
     else:
       self.done=True
+      logging.debug("YTCommentWorkerRecord.populate(): is done: "+str(self.tid))
 
     self.lastwork=datetime.datetime.now()
     dbsession.commit()
@@ -98,9 +99,14 @@ def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   ycwd=dbsession.query(YTCommentWorkerRecord)
-  for ycw in ycwd[:5]:
+  for ycw in ycwd[0:2]:
+    #yt=YtQueue().youtube
+    #ycw.populate(yt)
     ycw.call_populate()
   YtQueue().join()
+  for ycw in ycwd[0:2]:
+    o=dbsession.merge(ycw)
+    dbsession.commit()
 
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
