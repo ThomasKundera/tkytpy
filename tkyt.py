@@ -12,9 +12,18 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
     self.videos=YTVideoList(self.field_storage)
 
   def add_video(self,yid):
-    self.videos.add_from_yid(yid)
+    self.videos.add_from_yid(yid.strip())
 
   def get_video_list(self):
     return self.videos.get_video_dict()
 
+
+  def get_newest_thread_of_interest(self):
+    return {}
+
+  def get_oldest_thread_of_interest(self):
+    return {}
+
+  def get_unseen_new_threads(self):
+    return {}
 
