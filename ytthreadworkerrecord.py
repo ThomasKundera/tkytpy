@@ -74,7 +74,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
         c.fill_from_json(tlc,False)
         c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
-        c.set_etag(etag,False)
+        c.set_yid_etag(self.yid,etag,False)
 
       if ('nextPageToken' in result):
         self.nexttreadpagetoken=result['nextPageToken']
