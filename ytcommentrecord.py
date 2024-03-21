@@ -36,6 +36,9 @@ class YTCommentRecord(SqlRecord,Base):
     self.text=snippet['textDisplay']
     print("TEXT LENGTH: "+str(len(self.text)))
 
+    if ('parentId' in snippet):
+      self.parent=snippet['parentId']
+
     self.author=snippet['authorDisplayName']
     self.published=datetime.datetime.strptime(snippet['publishedAt'],"%Y-%m-%dT%H:%M:%SZ")
     self.updated  =datetime.datetime.strptime(snippet['updatedAt'],"%Y-%m-%dT%H:%M:%SZ")
