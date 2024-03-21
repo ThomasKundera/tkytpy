@@ -3,6 +3,8 @@ import time
 import threading
 from threading import Thread, Semaphore
 
+from sqlsingleton    import SqlSingleton, Base
+
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
@@ -14,6 +16,7 @@ class YTSpinner:
     self.field_storage=field_storage
     self.cls=cls
     self.semaphore=Semaphore(1)
+    self.modified_item=None
 
   def run(self):
     logging.debug("YTSpinner.run(): START")
@@ -23,9 +26,17 @@ class YTSpinner:
 
   def call_populate(self,item):
     logging.debug("YTSpinner.call_populate: START")
+    # FIXME: this is some way to recover the data
+    # that were not saved.
+    if (self.modified_item):
+      dbsession=SqlSingleton().mksession()
+      dbsession.merge(self.modified_item)
+      dbsession.commit()
+
     priority=item[0]
     t=item[1]
     self.semaphore.acquire()
+    self.modified_item=t # Trying to solve the multithread issue
     # Using priority here needs a careful evaluation.
     # So, we'll just give everything same for now.
     t.call_populate(1000,self.semaphore)
@@ -37,6 +48,7 @@ class YTSpinner:
 
   def do_spin(self):
     logging.debug("YTSpinner.do_spin(): START")
+
     ol=[]
     od=self.field_storage.get_dict(self.cls)
     for o in od.values():
