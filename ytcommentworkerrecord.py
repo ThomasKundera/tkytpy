@@ -15,8 +15,9 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentWorkerRecord(SqlRecord,Base):
-  __tablename__            = 'ytcommentworkerrecord0_4'
+  __tablename__            = 'ytcommentworkerrecord0_5'
   tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
+  yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   done                     = sqlalchemy.Column(sqlalchemy.Boolean)
   etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
@@ -26,9 +27,10 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     self.tid=tid
     super().__init__(dbsession,commit)
 
-  def set_etag(self,etag,commit=True):
+  def set_yid_etag(self,yid,etag,commit=True):
     if (commit):
       dbsession=get_dbsession(self)
+    self.yid=yid
     self.etag=etag
     if (commit):
       dbsession.commit()
@@ -56,7 +58,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     if (self.done):
       logging.debug("YTCommentWorkerRecord.populate(): done: "+str(self.tid))
       return
-    dbsession=get_dbsession(self)
+    dbsession= dbsession=SqlSingleton().mksession()
     if (not self.nextcmtpagetoken):
       request=youtube.comments().list(
         part='snippet',
@@ -69,17 +71,12 @@ class YTCommentWorkerRecord(SqlRecord,Base):
         maxResults=100)
     result=request.execute()
     for comment in result['items']:
-      tid=thread['id']
-      etag=thread['etag']
-      tlc=thread['snippet']['topLevelComment']
-      cid=tlc['id'] # Is same at tid, actually
+      cid=comment['id']
       c=get_dbobject(YTCommentRecord,cid,dbsession)
-      if (not self.firstthreadcidcandidate):
-        self.firstthreadcidcandidate=tid
-
-      c.fill_from_json(tlc,False)
-      c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
-      c.set_etag(etag,False)
+      # yid is not in the subcomment (only in topcomment)
+      # adding it by hand
+      comment['snippet']['videoId']=self.yid
+      c.fill_from_json(comment,False)
 
     if ('nextPageToken' in result):
        self.nexttreadpagetoken=result['nextPageToken']
@@ -89,8 +86,6 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     self.lastwork=datetime.datetime.now()
     dbsession.commit()
     logging.debug("YTCommentWorkerRecord.populate(): END")
-
-
 
 # --------------------------------------------------------------------------
 def main():
