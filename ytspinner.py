@@ -9,9 +9,10 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTSpinner:
-  def __init__(self,field_storage):
+  def __init__(self,field_storage,cls):
     logging.debug("YTSpinner.__init__(): START")
     self.field_storage=field_storage
+    self.cls=cls
     self.semaphore=Semaphore(1)
 
   def run(self):
@@ -25,7 +26,9 @@ class YTSpinner:
     priority=item[0]
     t=item[1]
     self.semaphore.acquire()
-    t.call_populate(priority,self.semaphore)
+    # Using priority here needs a careful evaluation.
+    # So, we'll just give everything same for now.
+    t.call_populate(1000,self.semaphore)
     logging.debug("YTSpinner.call_populate: END")
 
   def queued_populate(self,youtube):
@@ -60,6 +63,7 @@ def main():
   field_storage = FieldStorage()
   field_storage
   ys=YTSpinner(field_storage,TestRecord)
+  ys.run()
   ys.spint.join()
   return
 # --------------------------------------------------------------------------
