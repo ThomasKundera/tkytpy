@@ -5,6 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 
+from threading import get_ident
+
 from tksecrets import localsqldb_pass
 
 import logging, sys
@@ -21,10 +23,37 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
       host="127.0.0.1",
       database=db,
     )
-    self.engine = sqlalchemy.create_engine(db_url, echo=True)
+    self.engine          = sqlalchemy.create_engine(db_url, echo=True)
     self.session_factory = sessionmaker(bind=self.engine)
-    self.mksession = scoped_session(self.session_factory)
+    self.session_maker   = scoped_session(self.session_factory)
+
+    self.threads_dict={}
     super().__init__()
+
+  def mksession(self):
+    dbsession=self.session_maker()
+    self.monitor_threads(dbsession)
+    return (dbsession)
+
+  def monitor_threads(self,dbsession):
+    # FIXME: the dict is never flush
+    current_thread=get_ident()
+    if dbsession in self.threads_dict:
+      if ( current_thread != self.threads_dict[dbsession]):
+        logging.debug("WARNING: same session, not same thread: dbsession: "
+          +str(dbsession)+" old thread: "
+          +str(self.threads_dict[dbsession])+" current thread: "
+          +str(current_thread))
+        raise
+    self.threads_dict[dbsession]=current_thread
+    for s in self.threads_dict:
+       if not s.is_active:
+         del self.threads_dict[s]
+     # try:
+     #   if not s.is_active:
+     #     del self.threads_dict[s]
+     # except:
+
 
   def close(self):
      self.engine.dispose()
@@ -37,6 +66,8 @@ def classtest():
   from sqlalchemy.ext.declarative import declarative_base
   Base = declarative_base(bind=SqlSingleton().engine)
   Base.metadata.create_all()
+  dbsession=SqlSingleton().mksession()
+  dbsession=SqlSingleton().mksession()
 
 def directtest():
   sqlproto='mysql+mysqlconnector'
