@@ -18,12 +18,12 @@ def get_dbsession(o):
   return (dbsession)
 
 # --------------------------------------------------------------------------
-def get_dbobject(myclass,key,dbsession=None):
+def get_dbobject(myclass,key,dbsession=None,commit=True):
   if not (dbsession):
     dbsession=SqlSingleton().mksession()
   o=dbsession.query(myclass).get(key)
   if (not o):
-    o=myclass(dbsession,key)
+    o=myclass(dbsession,key,commit)
     dbsession.add(o)
   return (o)
 
@@ -38,7 +38,7 @@ def get_dbobject_if_exists(myclass,key,dbsession=None):
 # --------------------------------------------------------------------------
 class SqlRecord:
   def __init__(self,dbsession,commit=True):
-    dbsession.add(self)
+    #dbsession.add(self)
     self.populate_default()
     if (commit):
       dbsession.commit()
@@ -49,7 +49,7 @@ class SqlRecord:
 
   def copy_from(self,o):
     #r = inspect(self.myclass).columns
-    mapper = class_mapper(self)
+    mapper = class_mapper(type(o))
     prim = set([c.key for c in mapper.primary_key])
     for k in [p.key for p in mapper.iterate_properties if p.key not in prim]:
       value = getattr(o, k)
