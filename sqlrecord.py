@@ -27,6 +27,13 @@ def get_dbobject(myclass,key,dbsession=None):
     dbsession.add(o)
   return (o)
 
+def get_dbobject_if_exists(myclass,key,dbsession=None):
+  if not (dbsession):
+    dbsession=SqlSingleton().mksession()
+  o=dbsession.query(myclass).get(key)
+  return (o)
+
+
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class SqlRecord:
