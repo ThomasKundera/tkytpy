@@ -4,7 +4,6 @@ import json
 import sqlalchemy
 from sqlalchemy.orm import Session
 
-from ytqueue         import YtQueue, YtTask
 from sqlsingleton    import SqlSingleton, Base
 from sqlrecord       import SqlRecord, get_dbsession, get_dbobject
 from ytcommentrecord import YTCommentRecord
@@ -89,6 +88,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
 
 # --------------------------------------------------------------------------
 def main():
+  from ytqueue         import YtQueue, YtTask
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   ycwd=dbsession.query(YTCommentWorkerRecord)
