@@ -2,16 +2,16 @@
 import datetime
 import json
 import sqlalchemy
-from sqlalchemy.orm import Session
 
 from sqlsingleton import SqlSingleton, Base
+from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-class YTAuthorRecord(Base):
+class YTAuthorRecord(SqlRecord,Base):
   __tablename__ = 'ytauthor0_1'
   name              = sqlalchemy.Column(sqlalchemy.Unicode(100),primary_key=True)
   pp                = sqlalchemy.Column(sqlalchemy.Unicode(200))
@@ -21,36 +21,54 @@ class YTAuthorRecord(Base):
   ignore            = sqlalchemy.Column(sqlalchemy.Boolean)
 
 
-  def __init__(self,name):
+  def __init__(self,dbsession,name,commit=True):
     self.name=name
-    self.db_create_or_load()
+    super().__init__(dbsession,commit)
 
-  def copy_from(self,o):
-    self.pp                = o.pp
-    self.me                = o.me
-    self.follow            = o.follow
-    self.friend            = o.friend
-    self.ignore            = o.ignore
-
-
-  def db_create_or_load(self):
-    dbsession=Session.object_session(self)
-    if not dbsession:
+  def fill_from_json(self,jscomment,commit=True):
+    if (commit):
       dbsession=SqlSingleton().mksession()
-    a=dbsession.query(YTAuthorRecord).get(self.name)
-    if not a:
-      print("New Author: "+self.name)
-      dbsession.add(self)
-      self.populate_variables_default()
-    else:
-      self.copy_from(a)
-    dbsession.commit()
+    snippet  =jscomment['snippet']
+    self.pp =snippet['authorProfileImageUrl']
+    if (commit):
+      dbsession.commit()
 
 
-  def populate_variables_default(self):
+  def populate_default(self):
     self.pp                = None
     self.me                = False
     self.follow            = False
     self.friend            = False
     self.ignore            = False
+
+
+
+    # --------------------------------------------------------------------------
+def main():
+  Base.metadata.create_all()
+  ycr=get_dbobject(YTAuthorRecord,"@bhromur")
+
+  jsc={'kind': 'youtube#comment',
+        'etag': '0dpXYZIyrl835yGrlcf0-Jy1IjA',
+        'id': 'UgzMZr8oiZeLFE-IGqB4AaABAg',
+        'snippet': {
+          'channelId': 'UCmmS_FihQnPgNm0eZGa5TZg',
+          'videoId': 'j2GXgMIYgzU',
+          'textDisplay': 'TEST',
+          'authorDisplayName': '@bhromur',
+          'authorProfileImageUrl': 'https://yt3.ggpht.com/ytc/AIdro_kxVy1R1IqrIs82Kgct-UZAtBxzMvZOBxoxIIQW=s48-c-k-c0x00ffffff-no-rj',
+          'authorChannelUrl': 'http://www.youtube.com/@bhromur',
+          'authorChannelId': {'value': 'UCcAB9d5riTvNrcUqTMvwNnA'},
+          'canRate': True,
+          'viewerRating': 'none',
+          'likeCount': 158,
+          'publishedAt': '2022-07-10T12:24:05Z',
+          'updatedAt': '2022-07-10T12:24:05Z'}}
+
+  ycr.fill_from_json(jsc)
+
+# --------------------------------------------------------------------------
+if __name__ == '__main__':
+  main()
+
 
