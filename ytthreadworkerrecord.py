@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import datetime
 import json
 import sqlalchemy
@@ -8,9 +9,12 @@ from ytqueue               import YtQueue, YtTask
 from sqlsingleton          import SqlSingleton, Base
 from sqlrecord             import SqlRecord, get_dbsession, get_dbobject
 from ytcommentworkerrecord import YTCommentWorkerRecord
+from ytcommentrecord       import YTCommentRecord
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
+from threading import get_ident
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -44,31 +48,38 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
   def populate(self,youtube):
     logging.debug("YTThreadWorkerRecord.populate(): START")
-    dbsession=get_dbsession(self)
+    dbsession= dbsession=SqlSingleton().mksession()
+
     if not (self.firstthreadcid):
       if (not self.nexttreadpagetoken):
         request=youtube.commentThreads().list(
-          part='id',
+          part='id,snippet',
           videoId=self.yid,
           maxResults=100)
       else:
         request=youtube.commentThreads().list(
-          part='id',
+          part='id,snippet',
           videoId=self.yid,
           pageToken=self.nexttreadpagetoken,
           maxResults=100)
       result=request.execute()
-      nbc=result['pageInfo']['totalResults']
       for thread in result['items']:
         tid=thread['id']
         etag=thread['etag']
+        tlc=thread['snippet']['topLevelComment']
+        cid=tlc['id'] # Is same at tid, actually
+        c=get_dbobject(YTCommentRecord,cid,dbsession)
         if (not self.firstthreadcidcandidate):
           self.firstthreadcidcandidate=tid
+
+        c.fill_from_json(tlc,False)
         c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
         c.set_etag(etag,False)
-      if (nbc)<100: # we have all
+
+      if ('nextPageToken' in result):
+        self.nexttreadpagetoken=result['nextPageToken']
+      else:
         self.firstthreadcid=self.firstthreadcidcandidate
-      self.nexttreadpagetoken=result['nextPageToken']
     else:
       time.sleep(1) # FIXME
     self.lastwork=datetime.datetime.now()
@@ -82,7 +93,7 @@ def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   ytwd=dbsession.query(YTThreadWorkerRecord)
-  for ytw in ytwd:
+  for ytw in ytwd[:10]:
     ytw.call_populate()
   YtQueue().join()
 
