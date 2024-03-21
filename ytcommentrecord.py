@@ -2,7 +2,6 @@
 import datetime
 import json
 import sqlalchemy
-from sqlalchemy.orm import Session
 
 from sqlsingleton import SqlSingleton, Base
 from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
@@ -28,7 +27,7 @@ class YTCommentRecord(SqlRecord,Base):
 
   def fill_from_json(self,jscomment,commit=True):
     if (commit):
-      dbsession= dbsession=SqlSingleton().mksession()
+      dbsession=SqlSingleton().mksession()
     self.cid =jscomment['id']
     snippet  =jscomment['snippet']
 
