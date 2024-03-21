@@ -48,7 +48,7 @@ class YTVideoRecord(SqlRecord,Base):
     Δt=datetime.datetime.now()-self.lastrefreshed
     # FIXME
     if (Δt.total_seconds() > 30*24*3600):
-      return 3600*24*365-Δt.total_seconds()
+      return max((30*24*3600-Δt.total_seconds())/3,0)
     return sys.maxsize
 
 
