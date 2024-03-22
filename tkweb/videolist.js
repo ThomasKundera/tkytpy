@@ -10,6 +10,7 @@ function populateVideoList(obj) {
     mdv.setAttribute('class','video');
 
     const ma1 = document.createElement("a");
+    ma1.setAttribute('href',"https://www.youtube.com/watch?v="+ytv.yid)
     const mi=document.createElement("img");
     mi.setAttribute('src',ytv.thumb_url_s);
     mi.setAttribute('width',"120");
