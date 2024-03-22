@@ -6,12 +6,12 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 
 from ytqueue               import YtQueue, YtTask
-from sqlrecord             import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
+from sqlrecord             import SqlRecord
 from ytcommentworkerrecord import YTCommentWorkerRecord
 from ytcommentrecord       import YTCommentRecord
 from ytauthorrecord        import YTAuthorRecord
 
-from sqlsingleton          import SqlSingleton, Base
+from sqlsingleton          import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -47,10 +47,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     self.nexttreadpagetoken=None
     self.nextcmtpagetoken=None
 
-  def populate(self,youtube):
+  def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTThreadWorkerRecord.populate(): START")
-    dbsession=SqlSingleton().mksession()
-
     if not (self.firstthreadcid):
       if (not self.nexttreadpagetoken):
         request=youtube.commentThreads().list(
@@ -63,6 +61,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           videoId=self.yid,
           pageToken=self.nexttreadpagetoken,
           maxResults=100)
+      print("ZZZ "+self.yid)
       result=request.execute()
       for thread in result['items']:
         tid=thread['id']
@@ -90,7 +89,6 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     else:
       time.sleep(1) # FIXME
     self.lastwork=datetime.datetime.now()
-    dbsession.commit()
     logging.debug("YTThreadWorkerRecord.populate(): END")
 
 
@@ -99,13 +97,15 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
+  YtQueue(0)
   ytwd=dbsession.query(YTThreadWorkerRecord)
   for ytw in ytwd[:2]:
-    ytw.call_populate()
+    print(ytw)
+    ytw.call_sql_task_threaded()
   YtQueue().join()
-  for ytw in ytwd[:2]:
-    o=dbsession.merge(ytw)
-    dbsession.commit()
+  #for ytw in ytwd[:2]:
+  #  o=dbsession.merge(ytw)
+  #  dbsession.commit()
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
   main()
