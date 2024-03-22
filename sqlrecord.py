@@ -59,6 +59,7 @@ class SqlRecord:
     return d
 
   def sql_task_threaded(self,dbsession,youtube):
+    raise # Must be implemented
     return
 
   def populate_default(self):
