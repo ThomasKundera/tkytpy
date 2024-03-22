@@ -69,12 +69,11 @@ class SqlRecord:
     return sys.maxsize
 
   def __str__(self):
-    s=str(type(self).__name__)+" : { "
+    s=str(type(self).__name__)+" (id= "
     mapper = class_mapper(type(self))
-    for k in [p.key for p in mapper.iterate_properties]:
-      value = getattr(self, k)
-      s+=str(k)+" : "+str(value)+","
-    s+=" } "
+    prim = [c.key for c in mapper.primary_key]
+    value = getattr(self, prim[0])
+    s+=str(value)+" )"
     return s
 
   def to_dict(self):
