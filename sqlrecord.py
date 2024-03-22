@@ -38,7 +38,6 @@ def get_dbobject_if_exists(myclass,key,dbsession=None):
 # --------------------------------------------------------------------------
 class SqlRecord:
   def __init__(self,dbsession,commit=True):
-    #dbsession.add(self)
     self.populate_default()
     if (commit):
       dbsession.commit()
@@ -78,6 +77,14 @@ class SqlRecord:
     s+=" } "
     return s
 
+  def to_dict(self):
+    d={}
+    mapper = class_mapper(type(self))
+    for k in [p.key for p in mapper.iterate_properties]:
+      value = getattr(self, k)
+      d[str(k)]=value
+    return d
+
   def populate(self,youtube):
     return
 
@@ -94,6 +101,7 @@ def main():
   tr4=get_dbobject(TestRecord,'tata')
   dbsession=get_dbsession(tr1)
   dbsession.commit()
+  print(tr1.to_dict())
 
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
