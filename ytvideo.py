@@ -17,24 +17,22 @@ def valid_url(url):
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTVideo(YTVideoRecord):
-  def __init__(self,yid):
-    self.yid=yid.strip()
+  def __init__(self,dbsession,yid,commit=True):
+    self.yid=yid
     self.url='https://www.youtube.com/watch?v='+self.yid
     if not self.is_valid_id():
       print("Not valid yid:"+self.yid)
       self.valid=False
       return
     self.valid=True
-    self.populated= False
-    super().__init__(self.yid)
-    if not self.populated:
-      self.call_populate()
+    super().__init__(dbsession,yid,commit)
 
   def is_valid_id(self):
     if (len(self.yid) != 11): return False
     return valid_url(self.url)
 
   def get_dict(self):
+    # FIXME: should use default
     return {
       'yid'  :          self.yid,
       'url'  :          self.url,
@@ -56,3 +54,22 @@ class YTVideo(YTVideoRecord):
       'url'  :     self.url,
       'title':     self.title,
     }
+
+# --------------------------------------------------------------------------
+def main():
+  from sqlsingleton import SqlSingleton, Base
+  from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
+  from ytqueue         import YtQueue, YtTask
+  Base.metadata.create_all()
+  dbsession=SqlSingleton().mksession()
+  v=get_dbobject(YTVideo,'LaVip3J__8Y',dbsession)
+  dbsession.commit()
+  return
+  yvd=dbsession.query(YTVideo)
+  for v in yvd[:5]:
+    v.call_populate()
+  YtQueue().join()
+
+# --------------------------------------------------------------------------
+if __name__ == '__main__':
+  main()
