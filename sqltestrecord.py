@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ytqueue      import YtQueue, YtTask
 from sqlsingleton import SqlSingleton, Base
-from sqlrecord    import SqlRecord, get_dbsession
+from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -31,8 +31,10 @@ class TestRecord(SqlRecord,Base):
     # FIXME: refreshing priority value is also complex
     if not(self.lastwork):
       return 0
-    Δt=datetime.datetime.now()-self.lastwork
-    return 3600*24*365-Δt.total_seconds()
+    Δt=(datetime.datetime.now()-self.lastwork).total_seconds()
+    τ=999999./min(1,Δt)
+
+    return int(τ)
 
   def populate_default(self):
     self.data1="something"
@@ -55,6 +57,9 @@ class TestRecord(SqlRecord,Base):
 def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
+  for i in range(10):
+    o=get_dbobject(TestRecord,str(i))
+  dbsession.commit()
   ytwd=dbsession.query(TestRecord)
   for ytw in ytwd:
     ytw.call_populate()
