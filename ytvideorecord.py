@@ -27,7 +27,7 @@ class YTVideoRecord(SqlRecord,Base):
   monitor           = sqlalchemy.Column(sqlalchemy.Boolean)
   suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
 
-  def __init__(self,dbsession,cid,commit=True):
+  def __init__(self,dbsession,yid,commit=True):
     self.yid=yid
     super().__init__(dbsession,commit)
 
@@ -89,6 +89,9 @@ def main():
   from ytqueue         import YtQueue, YtTask
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
+  v=get_dbobject(YTVideoRecord,'LaVip3J__8Y',dbsession)
+  dbsession.commit()
+  return
   yvd=dbsession.query(YTVideoRecord)
   for v in yvd[:5]:
     v.call_populate()
