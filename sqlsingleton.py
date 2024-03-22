@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 import sqlalchemy
+from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.ext.declarative import declarative_base
@@ -13,6 +14,32 @@ import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 import tksingleton
+
+
+# --------------------------------------------------------------------------
+def get_dbsession(o):
+  dbsession=Session.object_session(o)
+  if not dbsession:
+    dbsession=SqlSingleton().mksession()
+  return (dbsession)
+
+# --------------------------------------------------------------------------
+def get_dbobject(myclass,key,dbsession=None,commit=True):
+  if not (dbsession):
+    dbsession=SqlSingleton().mksession()
+  o=dbsession.query(myclass).get(key)
+  if (not o):
+    o=myclass(dbsession,key,commit)
+    dbsession.add(o)
+  return (o)
+
+def get_dbobject_if_exists(myclass,key,dbsession=None):
+  if not (dbsession):
+    dbsession=SqlSingleton().mksession()
+  o=dbsession.query(myclass).get(key)
+  return (o)
+
+
 
 class SqlSingleton(metaclass=tksingleton.SingletonMeta):
   def __init__(self,db='tkyt'):
