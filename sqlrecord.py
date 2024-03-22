@@ -82,7 +82,7 @@ class SqlRecord:
     mapper = class_mapper(type(self))
     for k in [p.key for p in mapper.iterate_properties]:
       value = getattr(self, k)
-      d[str(k)]=value
+      d[str(k)]=str(value)
     return d
 
   def populate(self,youtube):
