@@ -56,6 +56,8 @@ async function add_video() {
       },
       body: JSON.stringify((Object.fromEntries(formData)))
     });
+    let inputytid = document.getElementById('ytid');
+    inputytid.value = "";
     update_video_list()
   } catch (e) {
     console.error(e);
