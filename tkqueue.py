@@ -36,9 +36,6 @@ class TkTaskUniq(TkTask):
     self.tid=tid
     super().__init__(task,priority,semaphore)
 
-  def run(self):
-    self.task()
-
   def __str__(self):
     return self.tid
 
