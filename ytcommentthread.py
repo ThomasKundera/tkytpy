@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import datetime
+import sqlalchemy
 
 from ytcommentworkerrecord  import YTCommentWorkerRecord
+from ytcommentrecord        import YTCommentRecord
+from ytauthorrecord         import YTAuthorRecord
 from sqlrecord              import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 from sqlsingleton import SqlSingleton, Base
@@ -9,24 +12,97 @@ from sqlsingleton import SqlSingleton, Base
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
+
+class YTComment(YTCommentRecord):
+  def __init__(self,dbsession,cid,commit=True):
+    self.cid=cid
+    super().__init__(dbsession,commit)
+
+  def from_me(self,dbsession=None):
+    a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
+    return (a.me)
+
+  def has_me(self):
+    me=['kundera', 'kuntera' 'cuntera']
+    for k in me:
+      if (k in self.text.lower()):
+        return True
+    return False
+
+  def from_friends(self,dbsession=None):
+    a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
+    return (a.friend)
+
+
+class YTThreadOfInterest(SqlRecord,Base):
+  __tablename__            = 'ytthreadofinterest0_1'
+  tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
+  yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
+  interest_level           = sqlalchemy.Column(sqlalchemy.Integer)
+  lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
+
+  def __init__(self,dbsession,tid,commit=True):
+    self.tid=tid
+    super().__init__(dbsession,commit)
+
+
+
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentThread():
-  def __init__(self,tid):
+  def __init__(self,tid,dbsession=None):
     self.tid=tid
+    if not dbsession:
+      self.dbsession=SqlSingleton().mksession()
+    else:
+      self.dbsession=dbsession
 
   def compute_interest(self):
+    comments=self.dbsession.query(YTComment).filter(YTComment.parent == self.tid or YTComment.cid == self.tid).order_by(YTComment.updated)
+    has_me=0
+    from_me=0
+    has_me_after=0
+    replies_after=0
+    most_recent_reply_after=datetime.datetime(2000, 1, 1)
+    from_me=False
+    for c in comments:
+      if (c.from_me(self.dbsession)):
+        from_me+=1
+      if (not from_me):
+        replies_after+=1
+        if (c.has_me()):
+           has_me_after+=1
+        if (c.updated > most_recent_reply_after):
+          most_recent_reply_after=c.updated
+    if (from_me):
+      Δt=(datetime.datetime.now()-most_recent_reply_after).total_seconds()
+      Δt=min(1,Δt) # As we want the inverse
+      τ=365.*24*3600./Δt # Will be 1 or less if comment older than one year
+      # As we are for now working with integers only,
+      # we'll convert <1 values to negative integers
+      if (τ<1):
+        τ=int(-1/τ)
+      value=from_me*(replies_after+1)*(has_me_after+1)*τ
+      return value
     return 0
 
-
-  def set_interest(self):
+  def set_interest(self,commit=True):
     interest_level=self.compute_interest()
-    dbsession=SqlSingleton().mksession()
-    cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,dbsession)
+    cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,self.dbsession)
     cwr.interest_level=interest_level
     cwr.lastcompute=datetime.datetime.now()
-    dbsession.commit()
+    if (commit):
+      self.dbsession.commit()
 
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+class YTCommentThreadList():
+  def __init__(self):
+    self.dbsession=SqlSingleton().mksession()
+    return
+
+  def get_oldest_thread_of_interest(self):
+    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level)
 
 # --------------------------------------------------------------------------
 def main():
