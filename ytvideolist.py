@@ -26,6 +26,6 @@ class YTVideoList:
     for v in dbsession.query(YTVideo):
       print("video: "+str(v))
       if v.valid:
-        l.append(v.get_dict())
+        l.append(v.to_dict())
     return  {'ytvlist': l}
 
