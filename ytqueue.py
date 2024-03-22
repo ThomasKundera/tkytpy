@@ -5,22 +5,28 @@ import datetime
 from tksecrets import google_api_key
 from googleapiclient.discovery import build
 
-import tkqueue
+from tkqueue import QueueWorkUniq
+from sqltask import SqlTaskUniq
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-class YtTask(tkqueue.TkTaskUniq):
+# FIXME: should the design here not mix SQL/YT and only care about
+# fetching the data?
+class YtTask(SqlTaskUniq):
+  def do_run(self,youtube):
+    self.o.sql_task_threaded(self.dbsession,youtube)
+
   def run(self,youtube):
-    self.task(youtube)
-    if (self.semaphore):
-      self.semaphore.release()
+    self.pre_run()
+    self.do_run(youtube)
+    self.post_run()
 
 # There will only be one instance of this,
 # as it derivates from SingletonMeta
 # Thus, we can queue googleapi requests here,
 # without worrying of multitheads (hoppefully)
-class YtQueue(tkqueue.QueueWorkUniq):
+class YtQueue(QueueWorkUniq):
   def __init__(self,wait_time=10):
     self.youtube=build('youtube','v3',
                        developerKey=google_api_key, cache_discovery=False)
