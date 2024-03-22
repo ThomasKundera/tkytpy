@@ -4,10 +4,11 @@ import json
 import sqlalchemy
 from sqlalchemy.orm import Session
 
-from sqlsingleton    import SqlSingleton, Base
-from sqlrecord       import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
+from sqlrecord       import SqlRecord
 from ytcommentrecord import YTCommentRecord
 from ytauthorrecord  import YTAuthorRecord
+
+from sqlsingleton    import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -57,12 +58,11 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     self.etag            =None
     self.nextcmtpagetoken=None
 
-  def populate(self,youtube):
+  def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTCommentWorkerRecord.populate(): START")
     if (self.done):
       logging.debug("YTCommentWorkerRecord.populate(): done: "+str(self.tid))
       return
-    dbsession=SqlSingleton().mksession()
     if (not self.nextcmtpagetoken):
       request=youtube.comments().list(
         part='snippet',
@@ -94,7 +94,6 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       logging.debug("YTCommentWorkerRecord.populate(): is done: "+str(self.tid))
 
     self.lastwork=datetime.datetime.now()
-    dbsession.commit()
     logging.debug("YTCommentWorkerRecord.populate(): END")
 
 # --------------------------------------------------------------------------
@@ -106,7 +105,7 @@ def main():
   for ycw in ycwd[0:2]:
     #yt=YtQueue().youtube
     #ycw.populate(yt)
-    ycw.call_populate()
+    ycw.call_sql_task_threaded()
   YtQueue().join()
   for ycw in ycwd[0:2]:
     o=dbsession.merge(ycw)
