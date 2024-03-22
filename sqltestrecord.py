@@ -5,8 +5,8 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 
 from ytqueue      import YtQueue, YtTask
-from sqlsingleton import SqlSingleton, Base
-from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
+from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject
+from sqlrecord    import SqlRecord
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -42,16 +42,11 @@ class TestRecord(SqlRecord,Base):
     self.data3="and this"
     self.lastwork=None
 
-  def populate(self,youtube):
-    logging.debug("YTThreadWorkerRecord.populate(): START")
-    dbsession=get_dbsession(self)
+  def sql_task_threaded(self,dbsession,youtube):
     request=youtube.videos().list(part='snippet',id=self.yid)
     result=request.execute()
     print(result)
     self.lastwork=datetime.datetime.now()
-    dbsession.commit()
-    logging.debug("YTThreadWorkerRecord.populate(): END")
-
 
 # --------------------------------------------------------------------------
 def main():
@@ -62,7 +57,7 @@ def main():
   dbsession.commit()
   ytwd=dbsession.query(TestRecord)
   for ytw in ytwd:
-    ytw.call_populate()
+    ytw.call_sql_task_threaded()
   YtQueue().join()
 
 

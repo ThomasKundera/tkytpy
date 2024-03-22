@@ -2,36 +2,14 @@
 import datetime
 import json
 import sqlalchemy
-from sqlalchemy.orm import Session
 from sqlalchemy.orm import class_mapper
-from sqlsingleton   import SqlSingleton, Base
 from ytqueue        import YtQueue, YtTask
+
+from sqlsingleton   import SqlSingleton, Base
+
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
-# --------------------------------------------------------------------------
-def get_dbsession(o):
-  dbsession=Session.object_session(o)
-  if not dbsession:
-    dbsession=SqlSingleton().mksession()
-  return (dbsession)
-
-# --------------------------------------------------------------------------
-def get_dbobject(myclass,key,dbsession=None,commit=True):
-  if not (dbsession):
-    dbsession=SqlSingleton().mksession()
-  o=dbsession.query(myclass).get(key)
-  if (not o):
-    o=myclass(dbsession,key,commit)
-    dbsession.add(o)
-  return (o)
-
-def get_dbobject_if_exists(myclass,key,dbsession=None):
-  if not (dbsession):
-    dbsession=SqlSingleton().mksession()
-  o=dbsession.query(myclass).get(key)
-  return (o)
 
 
 # --------------------------------------------------------------------------
@@ -54,11 +32,11 @@ class SqlRecord:
       value = getattr(o, k)
       setattr(self, k, value)
 
-  def call_populate(self,priority=0,semaphore=None):
-    logging.debug(type(self).__name__+".call_populate(): START")
-    task=YtTask('populate:'+type(self).__name__+"-"+self.get_id(),self.populate,priority,semaphore)
+  def call_sql_task_threaded(self,priority=0,semaphore=None):
+    logging.debug(type(self).__name__+".sql_task_threaded(): START")
+    task=YtTask('populate:'+type(self).__name__+"-"+self.get_id(),type(self),self.get_id(),priority,semaphore)
     YtQueue().add(task)
-    logging.debug(type(self).__name__+".call_populate(): END")
+    logging.debug(type(self).__name__+".sql_task_threaded(): END")
 
   def get_priority(self):
     logging.debug(type(self).__name__+".get_priority(): START")
@@ -69,11 +47,7 @@ class SqlRecord:
     return sys.maxsize
 
   def __str__(self):
-    s=str(type(self).__name__)+" (id= "
-    mapper = class_mapper(type(self))
-    prim = [c.key for c in mapper.primary_key]
-    value = getattr(self, prim[0])
-    s+=str(value)+" )"
+    s=str(type(self).__name__)+" (id= "+str(self.get_id())+" )"
     return s
 
   def to_dict(self):
@@ -84,7 +58,7 @@ class SqlRecord:
       d[str(k)]=str(value)
     return d
 
-  def populate(self,youtube):
+  def sql_task_threaded(self,dbsession,youtube):
     return
 
   def populate_default(self):
