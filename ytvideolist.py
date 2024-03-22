@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-
-from ytvideo           import YTVideo
+from sqlsingleton   import SqlSingleton, Base
+from sqlrecord      import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
+from ytvideo        import YTVideo
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -11,21 +12,18 @@ class YTVideoList:
   def __init__(self,field_storage):
     logging.debug("YTVideoList.__init__(): START")
     self.field_storage=field_storage
-    self.videos=self.field_storage.get_videos()
 
   def add_from_yid(self,yid):
-    v=YTVideo(yid)
-    return self.add(v)
-
-  def add(self,v):
-    if not v.valid:
-      logging.debug("Not adding invalid video: "+str(v))
-      return False
-    self.videos[v.yid]=v
+    if (len(yid) != 11): return False
+    dbsession=SqlSingleton().mksession()
+    v=get_dbobject(YTVideo,yid,dbsession,False)
+    dbsession.commit()
+    return v.valid
 
   def get_video_dict(self):
+    dbsession=SqlSingleton().mksession()
     l=[]
-    for v in self.videos.values():
+    for v in dbsession.query(YTVideo):
       print("video: "+str(v))
       if v.valid:
         l.append(v.get_dict())
