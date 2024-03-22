@@ -60,8 +60,14 @@ class YTCommentThread():
     else:
       self.dbsession=dbsession
 
+  def get_comment_list(self,with_tlc=False):
+    if (with_tlc):
+      return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid or YTComment.cid == self.tid).order_by(YTComment.updated)
+    return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated)
+
   def compute_interest(self):
-    comments=self.dbsession.query(YTComment).filter(YTComment.parent == self.tid or YTComment.cid == self.tid).order_by(YTComment.updated)
+    logging.debug("YTCommentThread.compute_interest: START")
+    comments=self.get_comment_list(True)
     has_me=0
     from_me=0
     has_me_after=0
@@ -84,9 +90,9 @@ class YTCommentThread():
       # As we are for now working with integers only,
       # we'll convert <1 values to negative integers
       if (τ<1):
-        τ=int(-1/τ)
-      value=from_me*(replies_after+1)*(has_me_after+1)*τ
-      return value
+        τ=-1/τ
+      value=from_me*(replies_after+has_me_after*has_me_after)*τ
+      return int(value)
     return 0
 
   def set_interest(self,commit=True):
@@ -97,6 +103,21 @@ class YTCommentThread():
     if (commit):
       self.dbsession.commit()
 
+  def to_dict(self):
+    d={}
+    cwr=get_dbobject_if_exists(YTComment,self.tid,self.dbsession)
+    tlc=cwr.to_dict()
+    d={'tlc': tlc}
+    cl=[]
+    cml=self.get_comment_list()
+    for c in cml:
+      cl.append(c.to_dict())
+    d['clist']=cl
+    return d
+
+
+
+
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentThreadList():
@@ -105,12 +126,27 @@ class YTCommentThreadList():
     return
 
   def get_oldest_thread_of_interest(self):
-    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level)
+    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level.desc()).limit(1)
+    if (not threads):
+      return None
+    t=YTCommentThread(threads[0].tid)
+    return t
+
+  def get_newest_thread_of_interest(self):
+    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level).limit(1)
+    if (not threads):
+      return None
+    t=YTCommentThread(threads[0].tid)
+    return t
 
 # --------------------------------------------------------------------------
 def main():
-  yct=YTCommentThread('Ugw-0kWl9ROhXGJe_cR4AaABAg')
+  yct=YTCommentThread('Ugz-g04lVUjL5K8Sv0h4AaABAg')
   yct.set_interest()
+  return
+
+  ytl=YTCommentThreadList()
+  print(ytl.get_oldest_thread_of_interest())
   return
 
 # --------------------------------------------------------------------------
