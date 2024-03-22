@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import time
-import threading
 from threading import Thread, Semaphore
 
 from sqlsingleton    import SqlSingleton, Base
@@ -58,7 +57,7 @@ class YTSpinner:
       logging.debug("YTSpinner.do_spin(): selected "+str(ols[0]))
       self.call_populate(ols[0])
     else:
-      logging.debug("YTSpinner.do_spin(): Nothing to do")
+      logging.debug(type(self).__name__+".do_spin(): Nothing to do")
       time.sleep(1)
     logging.debug("YTSpinner.do_spin(): END")
 
