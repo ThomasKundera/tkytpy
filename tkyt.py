@@ -17,7 +17,6 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def get_video_list(self):
     return self.videos.get_video_dict()
 
-
   def get_newest_thread_of_interest(self):
     return {}
 

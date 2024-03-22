@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from sqlrecord              import get_dbobject
-from ytcommentworkerrecord import YTCommentWorkerRecord
+from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytspinner              import YTSpinner
 
 import logging, sys
