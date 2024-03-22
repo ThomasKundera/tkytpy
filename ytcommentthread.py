@@ -20,6 +20,9 @@ class YTComment(YTCommentRecord):
 
   def from_me(self,dbsession=None):
     a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
+    if not a:
+      logging.debug("WARNING: YTComment.from_me: author "+str(self.author)+" does not exists")
+      return False
     return (a.me)
 
   def has_me(self):
