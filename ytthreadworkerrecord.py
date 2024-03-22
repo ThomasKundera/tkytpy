@@ -6,11 +6,12 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 
 from ytqueue               import YtQueue, YtTask
-from sqlsingleton          import SqlSingleton, Base
 from sqlrecord             import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
 from ytcommentworkerrecord import YTCommentWorkerRecord
 from ytcommentrecord       import YTCommentRecord
 from ytauthorrecord        import YTAuthorRecord
+
+from sqlsingleton          import SqlSingleton, Base
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -40,15 +41,15 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
 
   def populate_default(self):
+    self.lastwork=None
     self.firstthreadcidcandidate=None
     self.firstthreadcid=None
     self.nexttreadpagetoken=None
     self.nextcmtpagetoken=None
-    self.lastwork=None
 
   def populate(self,youtube):
     logging.debug("YTThreadWorkerRecord.populate(): START")
-    dbsession= dbsession=SqlSingleton().mksession()
+    dbsession=SqlSingleton().mksession()
 
     if not (self.firstthreadcid):
       if (not self.nexttreadpagetoken):
