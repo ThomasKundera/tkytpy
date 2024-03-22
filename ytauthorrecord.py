@@ -3,8 +3,8 @@ import datetime
 import json
 import sqlalchemy
 
-from sqlsingleton import SqlSingleton, Base
-from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
+from sqlrecord    import SqlRecord
+from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
