@@ -90,7 +90,6 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     else:
       time.sleep(1) # FIXME
     self.lastwork=datetime.datetime.now()
-    print("ZZWeWorked: "+self.yid+" "+str(self.lastwork))
     dbsession.commit()
     logging.debug("YTThreadWorkerRecord.populate(): END")
 
