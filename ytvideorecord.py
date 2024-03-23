@@ -52,9 +52,8 @@ class YTVideoRecord(SqlRecord,Base):
     return sys.maxsize
 
 
-  def populate(self,youtube):
+  def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTVideoRecord.populate(): START")
-    dbsession=SqlSingleton().mksession()
     request=youtube.videos().list(part='snippet,statistics', id=self.yid)
     rawytdata = request.execute()
     if len(rawytdata['items']) != 1:
@@ -68,8 +67,6 @@ class YTVideoRecord(SqlRecord,Base):
       self.populated=True
       self.oldrefreshed=self.lastrefreshed
       self.lastrefreshed=datetime.datetime.now()
-    dbsession.commit()
-    dbsession.close()
 
   def populate_default(self):
     self.populated       = False
@@ -89,12 +86,13 @@ def main():
   from ytqueue         import YtQueue, YtTask
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
+  YtQueue(1)
   v=get_dbobject(YTVideoRecord,'LaVip3J__8Y',dbsession)
   dbsession.commit()
-  return
+  #return
   yvd=dbsession.query(YTVideoRecord)
   for v in yvd[:5]:
-    v.call_populate()
+    v.call_sql_task_threaded()
   YtQueue().join()
 
 # --------------------------------------------------------------------------
