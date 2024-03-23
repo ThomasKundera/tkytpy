@@ -15,8 +15,12 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
 
   def add_video(self,yid):
     yid=yid.strip()
-    if (len(yid)!=11):
-      yid=yid.split('?')[1].split('=')[1][0:11]
+    if (len(yid)>11):
+      yid=yid.split('?')
+      if (len(yid)>1):
+        yid[1].split('=')
+        if (len(yid)>1):
+          yid=yid[1][0:11]
     if (yid):
       self.videos.add_from_yid(yid)
 
