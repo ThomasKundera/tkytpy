@@ -16,7 +16,6 @@ class YTSpinner:
     self.cls=cls
     self.semaphore=Semaphore(1)
     self.modified_item=None
-    self.dbsession=SqlSingleton().mksession()
 
   def run(self):
     logging.debug("YTSpinner.run(): START")
@@ -26,6 +25,7 @@ class YTSpinner:
 
   def call_populate(self,item):
     logging.debug("YTSpinner.call_populate: START")
+    SqlSingleton().monitor_threads(self.dbsession)
     # FIXME: this is some way to recover the data
     # that were not saved.
     if (self.modified_item):
@@ -60,6 +60,8 @@ class YTSpinner:
     logging.debug("YTSpinner.spin: START")
     if (not self.field_storage):
       return # For tests, mostly
+    # Now in main thread, time to create the dbsession.
+    self.dbsession=SqlSingleton().mksession()
     while True:
       time.sleep(1)
       self.do_spin()
