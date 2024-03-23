@@ -16,6 +16,7 @@ class YTSpinner:
     self.cls=cls
     self.semaphore=Semaphore(1)
     self.modified_item=None
+    self.dbsession=SqlSingleton().mksession()
 
   def run(self):
     logging.debug("YTSpinner.run(): START")
@@ -28,22 +29,16 @@ class YTSpinner:
     # FIXME: this is some way to recover the data
     # that were not saved.
     if (self.modified_item):
-      dbsession=SqlSingleton().mksession()
-      dbsession.merge(self.modified_item)
-      dbsession.commit()
-
+      self.dbsession.merge(self.modified_item)
+      self.dbsession.commit()
     priority=item[0]
     t=item[1]
     self.semaphore.acquire()
     self.modified_item=t # Trying to solve the multithread issue
     # Using priority here needs a careful evaluation.
     # So, we'll just give everything same for now.
-    t.call_populate(1000,self.semaphore)
+    t.call_sql_task_threaded(1000,self.semaphore)
     logging.debug("YTSpinner.call_populate: END")
-
-  def queued_populate(self,youtube):
-    logging.debug("YTSpinner.queued_populate: START")
-    time.sleep(10) # Just for tests
 
   def do_spin(self):
     logging.debug("YTSpinner.do_spin(): START")
@@ -73,8 +68,10 @@ class YTSpinner:
 def main():
   from fieldstorage      import FieldStorage
   from sqltestrecord import TestRecord
+  from ytqueue        import YtQueue
   field_storage = FieldStorage()
   field_storage
+  YtQueue(1)
   ys=YTSpinner(field_storage,TestRecord)
   ys.run()
   ys.spint.join()
