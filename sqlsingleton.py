@@ -64,17 +64,20 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
     return (dbsession)
 
   def monitor_threads(self,dbsession):
-    logging.debug("SqlSingleton.monitor_threads: START")
+    #logging.debug("SqlSingleton.monitor_threads: START")
     # This should not be run in parallel
     self.semaphore.acquire()
     current_thread=get_ident()
     if dbsession in self.threads_dict:
       if ( current_thread != self.threads_dict[dbsession]):
-        logging.debug("WARNING: same session, not same thread: dbsession: "
+        logging.debug("SqlSingleton.monitor_threads(): ERROR: same session, not same thread: dbsession: "
           +str(dbsession)+" old thread: "
           +str(self.threads_dict[dbsession])+" current thread: "
           +str(current_thread))
         raise
+    logging.debug("SqlSingleton.monitor_threads(): "
+      +"Thread: "+str(current_thread)+" "
+      +"dbsession: "+str(dbsession))
     self.threads_dict[dbsession]=current_thread
     to_del=[]
     for s in self.threads_dict:
@@ -83,7 +86,7 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
     for s in to_del:
       del self.threads_dict[s]
     self.semaphore.release()
-    logging.debug("SqlSingleton.monitor_threads: END")
+    #logging.debug("SqlSingleton.monitor_threads: END")
 
 
   def close(self):
