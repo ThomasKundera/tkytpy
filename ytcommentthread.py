@@ -5,9 +5,9 @@ import sqlalchemy
 from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytcommentrecord        import YTCommentRecord
 from ytauthorrecord         import YTAuthorRecord
-from sqlrecord              import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
+from sqlrecord              import SqlRecord
 
-from sqlsingleton import SqlSingleton, Base
+from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
