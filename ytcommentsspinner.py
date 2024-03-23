@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from sqlrecord              import get_dbobject
 from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytspinner              import YTSpinner
 
@@ -14,7 +13,9 @@ class YTCommentsSpinner(YTSpinner):
 # --------------------------------------------------------------------------
 def main():
   from fieldstorage      import FieldStorage
+  from ytqueue         import YtQueue
   field_storage = FieldStorage()
+  YtQueue(1)
   ycs=YTCommentsSpinner(field_storage)
   ycs.run()
   from ytqueue import YtQueue
