@@ -97,7 +97,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
-  YtQueue(0)
+  YtQueue(1)
   ytwd=dbsession.query(YTThreadWorkerRecord)
   for ytw in ytwd[:2]:
     print(ytw)
