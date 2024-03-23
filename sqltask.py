@@ -23,8 +23,8 @@ class SqlTask(TkTask):
     self.o.sql_task_threaded(self.dbsession)
 
   def post_run(self):
-    self. dbsession.commit()
     self.dbsession.merge(self.o)
+    self. dbsession.commit()
     if (self.semaphore):
       self.semaphore.release()
 
