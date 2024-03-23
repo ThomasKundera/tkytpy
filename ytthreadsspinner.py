@@ -13,7 +13,6 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class YTThreadsSpinner(YTSpinner):
   def __init__(self,field_storage):
     super().__init__(field_storage,YTThreadWorkerRecord)
-    self.update_from_videos()
 
   def update_from_videos(self):
     # Creating the table from video and filling it if not existing
