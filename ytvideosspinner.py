@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-from sqlrecord            import get_dbobject, get_dbsession
 from ytthreadworkerrecord import YTThreadWorkerRecord
 from ytspinner            import YTSpinner
 from ytvideorecord        import YTVideoRecord
 
-from sqlsingleton import SqlSingleton, Base
+from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbsession
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
