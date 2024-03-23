@@ -2,10 +2,9 @@
 import time
 from threading import Thread, Semaphore
 
-from sqlrecord              import get_dbobject, get_dbsession
 from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytcommentthread        import YTCommentThread
-from sqlsingleton import SqlSingleton, Base
+from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbsession
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -16,6 +15,8 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class YTThreadsEvaluationThread:
   def __init__(self,field_storage):
     self.field_storage=field_storage
+    # dbsession for this thread
+    self.dbsession=SqlSingleton().mksession()
 
   def run(self):
     logging.debug("YTThreadsEvaluationThread.run(): START")
@@ -40,7 +41,6 @@ class YTThreadsEvaluationThread:
     logging.debug("YTThreadsEvaluationThread.spin: START")
     if (not self.field_storage):
       return # For tests, mostly
-    self.dbsession=SqlSingleton().mksession()
     while True:
       time.sleep(1)
       self.do_spin(100)
@@ -51,6 +51,8 @@ class YTThreadsEvaluationThread:
 # --------------------------------------------------------------------------
 def main():
   from fieldstorage      import FieldStorage
+  from ytqueue         import YtQueue
+  YtQueue(1)
   field_storage = FieldStorage()
   yte=YTThreadsEvaluationThread(field_storage)
   yte.run()
