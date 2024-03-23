@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from sqlsingleton   import SqlSingleton, Base
-from sqlrecord      import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
 from ytvideo        import YTVideo
+
+from sqlsingleton   import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
