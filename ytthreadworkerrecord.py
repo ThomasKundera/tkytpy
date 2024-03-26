@@ -61,7 +61,6 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           videoId=self.yid,
           pageToken=self.nexttreadpagetoken,
           maxResults=100)
-      print("ZZZ "+self.yid)
       result=request.execute()
       for thread in result['items']:
         tid=thread['id']
@@ -90,7 +89,6 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       time.sleep(1) # FIXME
     self.lastwork=datetime.datetime.now()
     logging.debug("YTThreadWorkerRecord.populate(): END")
-
 
 
 # --------------------------------------------------------------------------

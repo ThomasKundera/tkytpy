@@ -45,8 +45,8 @@ def main():
   field_storage = FieldStorage()
   tk=TkYt(field_storage)
   tk.setup()
-  tk.add_video("https://www.youtube.com/watch?v=LaVip3J__8Y")
-  return
+  #tk.add_video("https://www.youtube.com/watch?v=LaVip3J__8Y")
+  #return
   print(tk.get_oldest_thread_of_interest())
   print(tk.get_newest_thread_of_interest())
 

@@ -3,7 +3,7 @@ import datetime
 import json
 import sqlalchemy
 
-from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject
+from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 from sqlrecord    import SqlRecord
 
 import logging, sys
@@ -80,12 +80,13 @@ class YTVideoRecord(SqlRecord,Base):
     self.lastrefreshed   = None
     self.oldrefreshed    = None
 
-
 # --------------------------------------------------------------------------
 def main():
   from ytqueue         import YtQueue, YtTask
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
+  import_from_file(dbsession)
+  return
   YtQueue(1)
   v=get_dbobject(YTVideoRecord,'LaVip3J__8Y',dbsession)
   dbsession.commit()
