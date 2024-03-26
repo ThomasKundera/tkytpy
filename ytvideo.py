@@ -55,13 +55,33 @@ class YTVideo(YTVideoRecord):
       'title':     self.title,
     }
 
+
+def import_from_file(dbsession):
+  from sqlsingleton import get_dbsession, get_dbobject, get_dbobject_if_exists
+  f=open('parents-id.txt','rt')
+  for line in f.readlines():
+    res=line.split(',')
+    if (len(res)==2):
+      tid=res[0].strip()
+      yid=res[1].strip()
+      yv=get_dbobject_if_exists(YTVideo,yid,dbsession)
+      if (not yv) or (yv.valid==None):
+        if (yv): dbsession.delete(yv)
+        logging.debug("Adding "+str(yid))
+        yv=get_dbobject(YTVideo,yid,dbsession,False)
+  dbsession.commit()
+
+
+
 # --------------------------------------------------------------------------
 def main():
-  from sqlsingleton import SqlSingleton, Base
-  from sqlrecord    import SqlRecord, get_dbsession, get_dbobject
+  from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject
+  from sqlrecord    import SqlRecord
   from ytqueue         import YtQueue, YtTask
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
+  import_from_file(dbsession)
+  return
   v=get_dbobject(YTVideo,'LaVip3J__8Y',dbsession)
   dbsession.commit()
   return
