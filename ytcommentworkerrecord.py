@@ -97,11 +97,29 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     self.lastwork=datetime.datetime.now()
     logging.debug("YTCommentWorkerRecord.populate(): END")
 
-# --------------------------------------------------------------------------
+def import_from_file(dbsession):
+  f=open('parents-id.txt','rt')
+  for line in f.readlines():
+    res=line.split(',')
+    if (len(res)==2):
+      tid=res[0].strip()
+      yid=res[1].strip()
+      ycw=get_dbobject_if_exists(YTCommentWorkerRecord,tid,dbsession)
+      if True:
+        if (ycw): dbsession.delete(ycw)
+        logging.debug("Adding "+str(tid)+" from "+str(yid))
+        ycw=get_dbobject(YTCommentWorkerRecord,tid,dbsession,False)
+        ycw.set_yid_etag(yid,None,False)
+
+  dbsession.commit()
+
+#  --------------------------------------------------------------------------
 def main():
   from ytqueue         import YtQueue, YtTask
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
+  import_from_file(dbsession)
+  return
   ycwd=dbsession.query(YTCommentWorkerRecord)
   for ycw in ycwd[0:2]:
     #yt=YtQueue().youtube
