@@ -127,23 +127,23 @@ class YTCommentThreadList():
 
   def get_oldest_thread_of_interest(self):
     threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level.desc()).limit(1)
-    if (not threads):
+    if (threads.count()==0):
       return None
     t=YTCommentThread(threads[0].tid)
     return t
 
   def get_newest_thread_of_interest(self):
     threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level).limit(1)
-    if (not threads):
+    if (threads.count()==0):
       return None
     t=YTCommentThread(threads[0].tid)
     return t
 
 # --------------------------------------------------------------------------
 def main():
-  yct=YTCommentThread('Ugz-g04lVUjL5K8Sv0h4AaABAg')
-  yct.set_interest()
-  return
+  #yct=YTCommentThread('Ugz-g04lVUjL5K8Sv0h4AaABAg')
+  #yct.set_interest()
+  #return
 
   ytl=YTCommentThreadList()
   print(ytl.get_oldest_thread_of_interest())
