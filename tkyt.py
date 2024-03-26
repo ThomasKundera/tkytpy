@@ -29,11 +29,15 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
 
   def get_newest_thread_of_interest(self):
     yth=self.commentthreadlist.get_newest_thread_of_interest()
-    return yth.to_dict()
+    if (yth):
+      return yth.to_dict()
+    return {}
 
   def get_oldest_thread_of_interest(self):
     yth=self.commentthreadlist.get_oldest_thread_of_interest()
-    return yth.to_dict()
+    if (yth):
+      return yth.to_dict()
+    return {}
 
   def get_unseen_new_threads(self):
     return {}
