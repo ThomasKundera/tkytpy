@@ -25,9 +25,9 @@ class YTThreadsEvaluationThread:
     logging.debug("YTThreadsEvaluationThread.run: END")
 
   def do_spin(self,chunck_size):
-    tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.lastcompute==None).limit(chunck_size) # FIXME: We could only get tid, here.
-    # FIXME: as at many other places this will only work once.
-    # Updates are not handled
+    #tteval=self.dbsession.query(YTCommentWorkerRecord).order_by(YTCommentWorkerRecord.lastwork.desc()).limit(chunck_size) # FIXME: We could only get tid, here.
+    tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level!=0).order_by(YTCommentWorkerRecord.interest_level.desc()).limit(chunck_size)
+
     count=0
     for t in tteval:
       #time.sleep(0.1) # FIXME This is to let time to other threads as there is
