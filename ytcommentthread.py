@@ -83,7 +83,7 @@ class YTCommentThread():
            has_me_after+=1
         if (c.updated > most_recent_reply_after):
           most_recent_reply_after=c.updated
-    if (from_me):
+    if (True):
       Δt=(datetime.datetime.now()-most_recent_reply_after).total_seconds()
       Δt=min(1,Δt) # As we want the inverse
       τ=365.*24*3600./Δt # Will be 1 or less if comment older than one year
@@ -91,7 +91,7 @@ class YTCommentThread():
       # we'll convert <1 values to negative integers
       if (τ<1):
         τ=-1/τ
-      value=from_me*(replies_after+has_me_after*has_me_after)*τ
+      value=(from_me+1)*(replies_after+has_me_after*has_me_after+1) #*τ
       return int(value)
     return 0
 
