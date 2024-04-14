@@ -25,14 +25,14 @@ class YTThreadsEvaluationThread:
     logging.debug("YTThreadsEvaluationThread.run: END")
 
   def do_spin(self,chunck_size):
-    #tteval=self.dbsession.query(YTCommentWorkerRecord).order_by(YTCommentWorkerRecord.lastwork.desc()).limit(chunck_size) # FIXME: We could only get tid, here.
-    tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level!=0).order_by(YTCommentWorkerRecord.interest_level.desc()).limit(chunck_size)
+    tteval=self.dbsession.query(YTCommentWorkerRecord).order_by(YTCommentWorkerRecord.lastwork.desc()).limit(chunck_size) # FIXME: We could only get tid, here.
+    #tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level!=0).order_by(YTCommentWorkerRecord.interest_level.desc()).limit(chunck_size)
 
     count=0
     for t in tteval:
-      #time.sleep(0.1) # FIXME This is to let time to other threads as there is
+      time.sleep(0.1) # FIXME This is to let time to other threads as there is
       #                # no thread priority available
-      YTCommentThread(t.tid,self.dbsession).set_interest(False)
+      YTCommentThread(t.tid,self.dbsession).set_interest()
       count+=1
     self.dbsession.commit()
     logging.debug("YTThreadsEvaluationThread.do_spin: END: processed "+str(count)+" items")
