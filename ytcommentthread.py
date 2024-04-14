@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import unittest
 import datetime
 import sqlalchemy
 
@@ -61,9 +62,22 @@ class YTCommentThread():
       self.dbsession=dbsession
 
   def get_comment_list(self,with_tlc=False):
+    with_tlc=False # FIXME
     if (with_tlc):
-      return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid or YTComment.cid == self.tid).order_by(YTComment.updated)
+      # BUG here
+      raise
+      return self.dbsession.query(YTComment).filter( (YTComment.parent == self.tid) or (YTComment.cid == self.tid) ).order_by(YTComment.updated)
     return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated)
+
+
+  def i_posted_there(self):
+    comments=self.get_comment_list(True)
+    print(comments)
+    for c in comments:
+      print("GARP: "+str(c))
+      if (c.from_me(self.dbsession)):
+        return True
+    return False
 
   def compute_interest(self):
     logging.debug("YTCommentThread.compute_interest: START")
@@ -86,12 +100,12 @@ class YTCommentThread():
     if (True):
       Δt=(datetime.datetime.now()-most_recent_reply_after).total_seconds()
       Δt=min(1,Δt) # As we want the inverse
-      τ=365.*24*3600./Δt # Will be 1 or less if comment older than one year
+      τ=((365.*24*3600.)/1000000)/Δt # Will be 1 or less if comment older than one year
       # As we are for now working with integers only,
       # we'll convert <1 values to negative integers
       if (τ<1):
         τ=-1/τ
-      value=(from_me+1)*(replies_after+has_me_after*has_me_after+1) #*τ
+      value=(from_me+1)*(replies_after+has_me_after*10+1)*τ
       return int(value)
     return 0
 
@@ -139,8 +153,40 @@ class YTCommentThreadList():
     t=YTCommentThread(threads[0].tid)
     return t
 
+
+class TestYTComment(unittest.TestCase):
+  def test_from(self):
+    dbsession=SqlSingleton().mksession()
+    ytc=get_dbobject_if_exists(YTComment,"UgxKkhejRlOem0a9MZd4AaABAg.9m9BVs9jpHh9mR5LDy3jc1",dbsession)
+    self.assertEqual(ytc.from_me(),False)
+    self.assertEqual(ytc.has_me() ,True)
+    ytc=get_dbobject_if_exists(YTComment,"UgxKkhejRlOem0a9MZd4AaABAg.9m9BVs9jpHh9mYKCAJxsPB",dbsession)
+    self.assertEqual(ytc.from_me(),True)
+
+
+class TestYTCommentThread(unittest.TestCase):
+  def test_comment_list(self):
+    dbsession=SqlSingleton().mksession()
+    ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
+    print(ytct.get_comment_list(True))
+
+
+  def test_I_posted(self):
+    dbsession=SqlSingleton().mksession()
+    ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
+    self.assertEqual(ytct.i_posted_there(),True)
+    #self.assertEqual(ytc.has_me() ,True)
+
+
+  def test_compute_interest(self):
+    dbsession=SqlSingleton().mksession()
+    ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
+    print("GARP: "+str(ytct.compute_interest()))
+
 # --------------------------------------------------------------------------
 def main():
+  unittest.main()
+  return
   #yct=YTCommentThread('Ugz-g04lVUjL5K8Sv0h4AaABAg')
   #yct.set_interest()
   #return
