@@ -12,4 +12,19 @@ class CmdNView:
     return
 
 
+# --------------------------------------------------------------------------
+def main():
+  from fieldstorage       import FieldStorage
+  from tkyt               import TkYt
+  field_storage = FieldStorage()
+  tkyt          = TkYt(field_storage)
+  tkyt.setup()
+  cmd=CmdNView(tkyt)
+  cmd.run()
+
+
+# --------------------------------------------------------------------------
+if __name__ == '__main__':
+  main()
+
 
