@@ -17,6 +17,26 @@ async function update_main() {
   }
 }
 
+
+
+async function get_oldest_thread_of_interest() {
+  try {
+    const response = await fetch("http://localhost:8000/post", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: ('{ "command": "get_oldest_thread_of_interest" }')
+    });
+    const yidtext = await response.text();
+    const yidjson=JSON.parse(yidtext);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+
 // On document load
 window.addEventListener("load", function() {
   update_main();

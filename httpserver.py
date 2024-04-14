@@ -54,6 +54,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.add_video(js['ytid'])
     if cmd == 'get_main_stuff':
       return self.get_main_stuff()
+    if cmd == 'get_oldest_thread_of_interest':
+      return self.get_oldest_thread_of_interest()
 
   def add_video(self,yid):
     self.tkyt.add_video(yid)
@@ -63,7 +65,7 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     return self.tkyt.get_video_list()
 
   def get_main_stuff(self):
-    return { 'status': 'OK' }
+    return self.tkyt.get_oldest_thread_of_interest()
 
 class HttpServer:
   def __init__(self,tkyt):
