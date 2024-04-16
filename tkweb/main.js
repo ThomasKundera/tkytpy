@@ -18,7 +18,6 @@ async function update_main() {
 }
 
 
-
 async function get_oldest_thread_of_interest() {
   try {
     const response = await fetch("http://localhost:8000/post", {
