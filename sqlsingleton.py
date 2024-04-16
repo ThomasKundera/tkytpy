@@ -92,7 +92,7 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
   def close(self):
      self.engine.dispose()
 
-Base = declarative_base(bind=SqlSingleton('tkytest').engine)
+Base = declarative_base(bind=SqlSingleton('tkyttest').engine)
 
 
 def classtest():
