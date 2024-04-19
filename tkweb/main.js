@@ -3,8 +3,9 @@ function populate_oldest_thread(obj) {
   otdiv.innerHTML = "";
   const tlc = obj.tlc;
 
-  const mvldiv = document.createElement("div");
-  mvldiv.setAttribute('class','videolist');
+  const olddiv = document.createElement("div");
+  olddiv.setAttribute('class','commentthread');
+
   for (const ytv of ytvlist) {
     const mdv = document.createElement("div");
     mdv.setAttribute('class','video');
@@ -36,7 +37,7 @@ function populate_oldest_thread(obj) {
 
     mvldiv.appendChild(mdv)
   }
-  videodiv.appendChild(mvldiv);
+  ot.appendChild(mvldiv);
 }
 
 
