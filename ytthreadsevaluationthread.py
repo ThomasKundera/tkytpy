@@ -37,8 +37,6 @@ class YTThreadsEvaluationThread:
 
     count=0
     for t in tteval:
-      time.sleep(0.1) # FIXME This is to let time to other threads as there is
-      #                # no thread priority available
       YTCommentThread(t.tid,self.dbsession).set_interest()
       count+=1
     self.dbsession.commit()
