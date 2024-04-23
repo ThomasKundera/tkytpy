@@ -64,7 +64,7 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
   def get_video_list(self):
     return self.tkyt.get_video_list()
 
-  def get_main_stuff(self):
+  def get_oldest_thread_of_interest(self):
     return self.tkyt.get_oldest_thread_of_interest()
 
 class HttpServer:
