@@ -1,46 +1,27 @@
 function populate_oldest_thread(obj) {
   const oldest_thread_div = document.querySelector("#oldestthreaddiv");
-  otdiv.innerHTML = "";
+  oldest_thread_div.innerHTML = "";
   const tlc = obj.tlc;
 
   const olddiv = document.createElement("div");
-  olddiv.setAttribute('class','commentthread');
+  olddiv.setAttribute('class','comment');
+  const p0 = document.createElement("p");
+  p0.textContent=tlc.author
+  olddiv.appendChild(p0)
+  const p1 = document.createElement("p");
+  p1.textContent=tlc.text
+  olddiv.appendChild(p1)
+  const ma0 = document.createElement("a");
+  ma0.setAttribute('href',"/thread.html?cid="+tlc.cid)
+  ma0.textContent="Thread"
+  olddiv.appendChild(ma0)
+  const ma1 = document.createElement("a");
+  ma1.setAttribute('href',"https://www.youtube.com/watch?v="+tlc.yid+"&lc="+tlc.cid)
+  ma1.textContent="Online link"
+  olddiv.appendChild(ma1)
 
-  for (const ytv of ytvlist) {
-    const mdv = document.createElement("div");
-    mdv.setAttribute('class','video');
-
-    const ma1 = document.createElement("a");
-    ma1.setAttribute('href',"https://www.youtube.com/watch?v="+ytv.yid)
-    const mi=document.createElement("img");
-    mi.setAttribute('src',ytv.thumb_url_s);
-    mi.setAttribute('width',"120");
-    mi.setAttribute('height',"90");
-    ma1.appendChild(mi);
-    mdv.appendChild(ma1);
-
-    const ma2 = document.createElement("a");
-    ma2.textContent = ytv.title;
-    ma2.setAttribute('href',"/video.html?yid="+ytv.yid)
-    mdv.appendChild(ma2)
-
-    const mdc = document.createElement("div");
-    mdc.setAttribute('class','vcontrol');
-
-    const mip = document.createElement("input");
-    mip.setAttribute('type','checkbox');
-    mip.setAttribute('id',"vmonitor");
-    mip.setAttribute('onclick',"monitor_video()");
-
-    mdc.appendChild(mip);
-    mdv.appendChild(mdc)
-
-    mvldiv.appendChild(mdv)
-  }
-  ot.appendChild(mvldiv);
+  oldest_thread_div.appendChild(olddiv);
 }
-
-
 
 
 
