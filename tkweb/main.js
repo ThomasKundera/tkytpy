@@ -12,7 +12,7 @@ function populate_oldest_thread(obj) {
   p1.textContent=tlc.text
   olddiv.appendChild(p1)
   const ma0 = document.createElement("a");
-  ma0.setAttribute('href',"/thread.html?cid="+tlc.cid)
+  ma0.setAttribute('href',"/thread.html?tid="+tlc.cid)
   ma0.textContent="Thread"
   olddiv.appendChild(ma0)
   const ma1 = document.createElement("a");
