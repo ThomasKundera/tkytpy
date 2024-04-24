@@ -67,7 +67,7 @@ class YTCommentThread():
       # BUG here
       raise
       return self.dbsession.query(YTComment).filter( (YTComment.parent == self.tid) or (YTComment.cid == self.tid) ).order_by(YTComment.updated)
-    return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated)
+    return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated.desc())
 
 
   def i_posted_there(self):
@@ -105,7 +105,7 @@ class YTCommentThread():
       # we'll convert <1 values to negative integers
       if (τ<1):
         τ=-1/τ
-      value=(from_me+1)*(replies_after+has_me_after*10+1)*τ
+      value=(from_me)*(replies_after+has_me_after*10)*τ
       return int(value)
     return 0
 
