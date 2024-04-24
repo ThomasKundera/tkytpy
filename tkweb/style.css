@@ -24,10 +24,12 @@ div.comment {
 
 div.commentmeta {
     float: left;
-    width: 30%;
+    width: 20%;
+    background-color: #FFFAFA;
 }
 
 div.commenttext {
     float: right;
+    width: 80%;
     text-align: justify;
 }

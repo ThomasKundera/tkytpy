@@ -16,13 +16,12 @@ function populate_comment(div,cmt) {
   const ctdv= document.createElement("div");
   ctdv.setAttribute('class','commenttext');
   const p2 = document.createElement("p");
-  p2.textContent=cmt.text
+  p2.innerHTML=cmt.text
   ctdv.appendChild(p2)
   cdv.appendChild(ctdv);
 
   div.appendChild(cdv);
 }
-
 
 function populate_thread(obj) {
   const thread_div = document.querySelector("#threaddiv");
