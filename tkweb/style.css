@@ -7,3 +7,15 @@ div.video {
 div.vcontrol {
     float: right;
 }
+
+div.comment {
+    border: 3px solid;
+    border-color: #FF00AA;
+    padding: 5px;
+}
+
+div.comment {
+    border: 3px solid;
+    border-color: #FF00AA;
+    padding: 5px;
+}
