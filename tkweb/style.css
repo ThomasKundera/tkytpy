@@ -8,14 +8,26 @@ div.vcontrol {
     float: right;
 }
 
-div.comment {
-    border: 3px solid;
+.threaddiv {
+     border: 3px solid;
     border-color: #FF00AA;
     padding: 5px;
 }
 
 div.comment {
+    display: flex;
+    justify-content: space-between;
     border: 3px solid;
     border-color: #FF00AA;
     padding: 5px;
+}
+
+div.commentmeta {
+    float: left;
+    width: 30%;
+}
+
+div.commenttext {
+    float: right;
+    text-align: justify;
 }

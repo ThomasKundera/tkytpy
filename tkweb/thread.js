@@ -1,12 +1,25 @@
 function populate_comment(div,cmt) {
   const cdv = document.createElement("div");
   cdv.setAttribute('class','comment');
+
+  const cmdv= document.createElement("div");
+  cmdv.setAttribute('class','commentmeta');
   const p0 = document.createElement("p");
-  p0.textContent=cmt.author+" "+cmt.updated
-  cdv.appendChild(p0)
-  const p1 = document.createElement("p");
-  p1.textContent=cmt.text
-  cdv.appendChild(p1)
+  p0.textContent=cmt.author
+  cmdv.appendChild(p0)
+  const ma1 = document.createElement("a");
+  ma1.setAttribute('href',"https://www.youtube.com/watch?v="+cmt.yid+"&lc="+cmt.cid)
+  ma1.textContent=cmt.updated
+  cmdv.appendChild(ma1)
+  cdv.appendChild(cmdv);
+
+  const ctdv= document.createElement("div");
+  ctdv.setAttribute('class','commenttext');
+  const p2 = document.createElement("p");
+  p2.textContent=cmt.text
+  ctdv.appendChild(p2)
+  cdv.appendChild(ctdv);
+
   div.appendChild(cdv);
 }
 
@@ -16,19 +29,7 @@ function populate_thread(obj) {
   thread_div.innerHTML = "";
   const tlc = obj.tlc;
 
-  const tlcdiv = document.createElement("div");
-  tlcdiv.setAttribute('class','tlccomment');
-  const p0 = document.createElement("p");
-  p0.textContent=tlc.author+" "+tlc.updated
-  tlcdiv.appendChild(p0)
-  const p1 = document.createElement("p");
-  p1.textContent=tlc.text
-  tlcdiv.appendChild(p1)
-
-  const ma1 = document.createElement("a");
-  ma1.setAttribute('href',"https://www.youtube.com/watch?v="+tlc.yid+"&lc="+tlc.cid)
-  ma1.textContent="Online link"
-  thread_div.appendChild(tlcdiv);
+  populate_comment(thread_div,tlc)
 
   for (const cmt of obj.clist) {
     populate_comment(thread_div,cmt)
