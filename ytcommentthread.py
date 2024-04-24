@@ -91,7 +91,7 @@ class YTCommentThread():
     for c in comments:
       if (c.from_me(self.dbsession)):
         from_me+=1
-      if (not from_me):
+      if (from_me>0):
         replies_after+=1
         if (c.has_me()):
            has_me_after+=1
