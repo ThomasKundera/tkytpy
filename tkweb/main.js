@@ -4,7 +4,7 @@ function populate_oldest_thread(obj) {
   const tlc = obj.tlc;
 
   const olddiv = document.createElement("div");
-  olddiv.setAttribute('class','comment');
+  olddiv.setAttribute('class','tidcomment');
   const p0 = document.createElement("p");
   p0.textContent=tlc.author
   olddiv.appendChild(p0)
