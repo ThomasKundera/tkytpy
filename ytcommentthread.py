@@ -153,6 +153,10 @@ class YTCommentThreadList():
     t=YTCommentThread(threads[0].tid)
     return t
 
+  def get_thread(self,tid):
+    t=YTCommentThread(tid)
+    return t
+
 
 class TestYTComment(unittest.TestCase):
   def test_from(self):
