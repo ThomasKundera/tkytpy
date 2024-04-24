@@ -1,9 +1,38 @@
+function populate_comment(div,cmt) {
+  const cdv = document.createElement("div");
+  cdv.setAttribute('class','comment');
+  const p0 = document.createElement("p");
+  p0.textContent=cmt.author+" "+cmt.updated
+  cdv.appendChild(p0)
+  const p1 = document.createElement("p");
+  p1.textContent=cmt.text
+  cdv.appendChild(p1)
+  div.appendChild(cdv);
+}
+
+
 function populate_thread(obj) {
   const thread_div = document.querySelector("#threaddiv");
   thread_div.innerHTML = "";
+  const tlc = obj.tlc;
+
+  const tlcdiv = document.createElement("div");
+  tlcdiv.setAttribute('class','tlccomment');
   const p0 = document.createElement("p");
-  p0.textContent=obj.tlc.cid
-  thread_div.appendChild(p0);
+  p0.textContent=tlc.author+" "+tlc.updated
+  tlcdiv.appendChild(p0)
+  const p1 = document.createElement("p");
+  p1.textContent=tlc.text
+  tlcdiv.appendChild(p1)
+
+  const ma1 = document.createElement("a");
+  ma1.setAttribute('href',"https://www.youtube.com/watch?v="+tlc.yid+"&lc="+tlc.cid)
+  ma1.textContent="Online link"
+  thread_div.appendChild(tlcdiv);
+
+  for (const cmt of obj.clist) {
+    populate_comment(thread_div,cmt)
+  }
 }
 
 async function update_thread(tid) {
