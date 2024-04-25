@@ -70,11 +70,6 @@ form.addEventListener("submit", (event) => {
   add_video();
 });
 
-// Take over form submission
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  add_video();
-});
 
 async function update_video_list() {
   try {

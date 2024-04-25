@@ -20,6 +20,16 @@ function populate_comment(div,cmt) {
   ctdv.appendChild(p2)
   cdv.appendChild(ctdv);
 
+  const frm=document.createElement("form");
+  frm.setAttribute('id',cmt.cid);
+  const bt1=document.createElement("button");
+  bt1.setAttribute('name','IgnoreBefore');
+  bt1.setAttribute('value',cmt.cid);
+  bt1.textContent="Ignore Before"
+  frm.preventDefault();
+  frm.addEventListener("change", manage_forms);
+  frm.appendChild(bt1)
+  cdv.appendChild(frm)
   div.appendChild(cdv);
 }
 
@@ -56,6 +66,28 @@ async function update_thread(tid) {
   }
 }
 
+async function manage_forms() {
+  // Associate the FormData object with the form element
+  console.error(this)
+  //const formData = new FormData(this);
+  //formData.set('command', 'set_ignore_from_comment');
+  return;
+  try {
+    const response = await fetch("http://localhost:8000/post", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify((Object.fromEntries(formData)))
+    });
+    let inputytid = document.getElementById('ytid');
+    inputytid.value = "";
+    update_video_list()
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 
 // On document load
