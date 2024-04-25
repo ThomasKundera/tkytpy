@@ -42,7 +42,7 @@ class YTThreadsEvaluationThread:
     # dbsession for this thread
     dbsession=SqlSingleton().mksession()
     while True:
-      time.sleep(1)
+      time.sleep(10)
       self.do_spin(dbsession,100)
 
 
