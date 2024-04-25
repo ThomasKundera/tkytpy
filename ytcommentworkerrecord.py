@@ -16,12 +16,15 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentWorkerRecord(SqlRecord,Base):
-  __tablename__            = 'ytcommentworkerrecord0_6'
+  __tablename__            = 'ytcommentworkerrecord0_7'
   tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   done                     = sqlalchemy.Column(sqlalchemy.Boolean)
   interest_level           = sqlalchemy.Column(sqlalchemy.Integer)
+  most_recent_me           = sqlalchemy.Column(sqlalchemy.DateTime)
+  tbd_replies_after        = sqlalchemy.Column(sqlalchemy.Boolean)
+  ignore_before            = sqlalchemy.Column(sqlalchemy.DateTime)
   lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
   etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
   nextcmtpagetoken         = sqlalchemy.Column(sqlalchemy.Unicode(200))
