@@ -156,6 +156,13 @@ class YTCommentThreadList():
     t=YTCommentThread(tid)
     return t
 
+  def set_ignore_from_comment(self,cid):
+    cmt=get_dbobject_if_exists(YTCommentRecord,cid,self.dbsession)
+    if (cmt):
+      tid=cmt.parent
+      tcwr=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
+      tcwr.ignore_before=tid.updated
+      self.dbsession.commit()
 
 class TestYTComment(unittest.TestCase):
   def test_from(self):

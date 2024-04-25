@@ -48,6 +48,9 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def get_unseen_new_threads(self):
     return {}
 
+  def set_ignore_from_comment(self,cid):
+    self.commentthreadlist.set_ignore_from_comment(cid)
+
 
 # --------------------------------------------------------------------------
 def main():

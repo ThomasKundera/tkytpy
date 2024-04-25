@@ -58,6 +58,9 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.get_oldest_thread_of_interest()
     if cmd == 'get_thread':
       return self.get_thread(js['tid'])
+    if cmd == 'set_ignore_from_comment':
+      return self.set_ignore_from_comment(js['cid'])
+
 
   def add_video(self,yid):
     self.tkyt.add_video(yid)
@@ -71,6 +74,10 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
 
   def get_thread(self,tid):
     return self.tkyt.get_thread(tid)
+
+  def set_ignore_from_comment(self,cid):
+    return self.tkyt.set_ignore_from_comment(cid)
+
 
 class HttpServer:
   def __init__(self,tkyt):
