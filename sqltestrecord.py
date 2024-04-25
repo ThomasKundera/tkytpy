@@ -43,6 +43,7 @@ class TestRecord(SqlRecord,Base):
     self.lastwork=None
 
   def sql_task_threaded(self,dbsession,youtube):
+    logging.debug(type(self).__name__+".sql_task_threaded(): START")
     request=youtube.videos().list(part='snippet',id=self.yid)
     result=request.execute()
     print(result)
