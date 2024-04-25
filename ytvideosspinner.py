@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from ytthreadworkerrecord import YTThreadWorkerRecord
 from ytspinner            import YTSpinner
 from ytvideorecord        import YTVideoRecord
 

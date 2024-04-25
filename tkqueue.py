@@ -79,7 +79,7 @@ class QueueWorkUniq(QueueWork):
   def add(self,item):
     if item.tid in self.taskdict:
       logging.debug("Task "+str(item)+" already in queue"
-                    +"about "+str(self.q.qsize())+" elements remaining"+
+                    +" about "+str(self.q.qsize())+" elements remaining"+
                     str(self.taskdict))
       if (item.semaphore):
         item.semaphore.release()
