@@ -93,14 +93,23 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
 # --------------------------------------------------------------------------
 def main():
+  from ytvideo import get_video_ids_from_file
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   YtQueue(1)
-  ytwd=dbsession.query(YTThreadWorkerRecord)
-  for ytw in ytwd[:2]:
-    print(ytw)
-    ytw.call_sql_task_threaded()
+  vidlist=get_video_ids_from_file('yturls.txt')
+  ytwlist=[]
+  for yid in vidlist:
+    ytw=get_dbobject_if_exists(YTThreadWorkerRecord,yid,dbsession)
+    if (not ytw): continue
+    ytwlist.append(ytw)
+
+  for i in range(100):
+    for ytw in ytwlist:
+      ytw.call_sql_task_threaded()
+    time.sleep(1)
   YtQueue().join()
+  dbsession.commit()
   #for ytw in ytwd[:2]:
   #  o=dbsession.merge(ytw)
   #  dbsession.commit()
