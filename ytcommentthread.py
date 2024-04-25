@@ -103,12 +103,17 @@ class YTCommentThread():
 
     if (most_recent_me < datetime.datetime(2001, 1, 1)):
       most_recent_me = None
+    if (most_recent_reply < datetime.datetime(2001, 1, 1)):
+      most_recent_reply = None
 
     if (cwr):
       cwr.interest_level=interest_level
       cwr.most_recent_me=most_recent_me
-      if (most_recent_me>cwr.ignore_before):
-        cwr.ignore_before=most_recent_me
+      if (most_recent_me):
+        if (not cwr.ignore_before):
+           cwr.ignore_before=most_recent_me
+        elif (most_recent_me>cwr.ignore_before):
+          cwr.ignore_before=most_recent_me
       cwr.most_recent_reply=most_recent_reply
     return interest_level
 
