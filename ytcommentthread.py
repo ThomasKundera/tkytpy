@@ -38,19 +38,6 @@ class YTComment(YTCommentRecord):
     return (a.friend)
 
 
-class YTThreadOfInterest(SqlRecord,Base):
-  __tablename__            = 'ytthreadofinterest0_1'
-  tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
-  yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
-  interest_level           = sqlalchemy.Column(sqlalchemy.Integer)
-  lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
-
-  def __init__(self,dbsession,tid,commit=True):
-    self.tid=tid
-    super().__init__(dbsession,commit)
-
-
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentThread():
