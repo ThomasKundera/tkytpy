@@ -18,7 +18,7 @@ class YTCommentRecord(SqlRecord,Base):
   yid               = sqlalchemy.Column(sqlalchemy.Unicode(50))
   parent            = sqlalchemy.Column(sqlalchemy.Unicode(50))
   author            = sqlalchemy.Column(sqlalchemy.Unicode(100))
-  text              = sqlalchemy.Column(sqlalchemy.Unicode(11000))
+  text              = sqlalchemy.Column(sqlalchemy.Unicode(11000)) #FIXME: 12000?
   published         = sqlalchemy.Column(sqlalchemy.DateTime)
   updated           = sqlalchemy.Column(sqlalchemy.DateTime)
   liked             = sqlalchemy.Column(sqlalchemy.Integer)
@@ -34,7 +34,7 @@ class YTCommentRecord(SqlRecord,Base):
     snippet  =jscomment['snippet']
 
     self.yid =snippet['videoId']
-    self.text=snippet['textDisplay']
+    self.text=snippet['textDisplay'][:10000] # FIXME
     print("TEXT LENGTH: "+str(len(self.text)))
     self.author=snippet['authorDisplayName']
 
