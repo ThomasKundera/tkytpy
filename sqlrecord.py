@@ -32,6 +32,14 @@ class SqlRecord:
       value = getattr(o, k)
       setattr(self, k, value)
 
+  def copy_to(self,o):
+    #r = inspect(self.myclass).columns
+    mapper = class_mapper(type(self))
+    prim = set([c.key for c in mapper.primary_key])
+    for k in [p.key for p in mapper.iterate_properties if p.key not in prim]:
+      value = getattr(self, k)
+      setattr(o, k, value)
+
   def call_sql_task_threaded(self,priority=0,semaphore=None):
     logging.debug(type(self).__name__+".call_sql_task_threaded(): START")
     task=YtTask('populate: '+type(self).__name__
