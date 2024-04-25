@@ -13,7 +13,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentRecord(SqlRecord,Base):
-  __tablename__ = 'ytcomment0_3'
+  __tablename__ = 'ytcomment0_4'
   cid               = sqlalchemy.Column(sqlalchemy.Unicode(100),primary_key=True)
   yid               = sqlalchemy.Column(sqlalchemy.Unicode(50))
   parent            = sqlalchemy.Column(sqlalchemy.Unicode(50))
@@ -21,6 +21,7 @@ class YTCommentRecord(SqlRecord,Base):
   text              = sqlalchemy.Column(sqlalchemy.Unicode(11000))
   published         = sqlalchemy.Column(sqlalchemy.DateTime)
   updated           = sqlalchemy.Column(sqlalchemy.DateTime)
+  liked             = sqlalchemy.Column(sqlalchemy.Integer)
 
   def __init__(self,dbsession,cid,commit=True):
     self.cid=cid
@@ -41,9 +42,17 @@ class YTCommentRecord(SqlRecord,Base):
       self.parent=snippet['parentId']
     self.published=datetime.datetime.strptime(snippet['publishedAt'],"%Y-%m-%dT%H:%M:%SZ")
     self.updated  =datetime.datetime.strptime(snippet['updatedAt'],"%Y-%m-%dT%H:%M:%SZ")
+    if (snippet['viewerRating'] == 'like'):
+      self.liked    = 1
+    else:
+      self.liked    = 0
+    # Waiting for the day dislikes will be returned...
     if (commit):
       dbsession.commit()
 
+  def populate_default(self):
+    # Wasn't kept in previous version
+    self.liked        = None
 # --------------------------------------------------------------------------
 def main():
   Base.metadata.create_all()
