@@ -89,7 +89,7 @@ class YTCommentThread():
         if (c.updated > most_recent_me):
           most_recent_me=c.updated
       else:
-        if (c.updated < ignore_before):
+        if (c.updated <= ignore_before):
           continue
         if (from_me>0):
           replies_after+=1
@@ -105,7 +105,8 @@ class YTCommentThread():
     if (cwr):
       cwr.interest_level=interest_level
       cwr.most_recent_me=most_recent_me
-      cwr.ignore_before=most_recent_me
+      if (most_recent_me>cwr.ignore_before):
+        cwr.ignore_before=most_recent_me
       cwr.most_recent_reply=most_recent_reply
     return interest_level
 
@@ -161,7 +162,7 @@ class YTCommentThreadList():
     if (cmt):
       tid=cmt.parent
       tcwr=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
-      tcwr.ignore_before=tid.updated
+      tcwr.ignore_before=cmt.updated
       self.dbsession.commit()
 
 class TestYTComment(unittest.TestCase):
@@ -199,11 +200,13 @@ def simple_test():
   dbsession=SqlSingleton().mksession()
   ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
   print(ytct.compute_interest())
+  ytct=YTCommentThread("UgjWCKGV7tqcM3gCoAEC",dbsession)
+  ytct.set_interest()
 
 # --------------------------------------------------------------------------
 def main():
-  #simple_test()
-  #return
+  simple_test()
+  return
   unittest.main()
   return
   #yct=YTCommentThread('Ugz-g04lVUjL5K8Sv0h4AaABAg')
