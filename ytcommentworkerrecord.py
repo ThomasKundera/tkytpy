@@ -118,20 +118,26 @@ def import_from_file(dbsession):
 
 #  --------------------------------------------------------------------------
 def main():
-  from ytqueue         import YtQueue, YtTask
+  import time
+  from ytqueue        import YtQueue
+  from ytvideo import get_video_ids_from_file
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
-  import_from_file(dbsession)
-  return
-  ycwd=dbsession.query(YTCommentWorkerRecord)
-  for ycw in ycwd[0:2]:
-    #yt=YtQueue().youtube
-    #ycw.populate(yt)
-    ycw.call_sql_task_threaded()
+  YtQueue(1)
+  vidlist=get_video_ids_from_file('yturls.txt')
+  ycwlist=[]
+  for yid in vidlist:
+    ycwl=dbsession.query(YTCommentWorkerRecord).filter( YTCommentWorkerRecord.yid == yid )
+    if (not ycwl): continue
+    ycwlist.append(ycwl)
+
+  for i in range(100):
+    for ycwl in ycwlist:
+      for ycw in ycwl:
+        ycw.call_sql_task_threaded()
+    time.sleep(1)
   YtQueue().join()
-  for ycw in ycwd[0:2]:
-    o=dbsession.merge(ycw)
-    dbsession.commit()
+  dbsession.commit()
 
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
