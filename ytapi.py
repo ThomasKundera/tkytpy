@@ -12,8 +12,6 @@ from googleapiclient.discovery import build
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-import tksingleton
-
 class CachedItem:
   def __init__(self,request,answer):
     self.date=datetime.datetime.now()
@@ -74,7 +72,11 @@ class YtApivideos(YtApiWork):
   def list(self,**kwargs):
     return YtApiExecute(self.ytapi.execute_videos_list,kwargs)
 
-class YtApi(metaclass=tksingleton.SingletonMeta):
+# metaclass=tksingleton.SingletonMeta ? Would be nice
+# but can't be nested in ytqueue which is also Singleton
+# So be simple and clear:
+# YtApi should just never be called directly, but only through YtQueue
+class YtApi:
   def __init__(self,wait_time=1):
     self.youtube=build('youtube','v3',
                        developerKey=google_api_key, cache_discovery=False)
@@ -83,8 +85,8 @@ class YtApi(metaclass=tksingleton.SingletonMeta):
     self.cache=DataCache()
     self.ytacommentThreads=YtApicommentThreads(self)
     self.ytacomments=YtApicomments(self)
-    super().__init__()
     self.ytavideos=YtApivideos(self)
+    super().__init__()
 
   def wait_a_bit(self):
     now=datetime.datetime.now()
@@ -124,7 +126,7 @@ class YtApi(metaclass=tksingleton.SingletonMeta):
     return self.ytacomments
 
   def videos(self):
-    return self.videos
+    return self.ytavideos
 
 
 # --------------------------------------------------------------------------
