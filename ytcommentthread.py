@@ -170,26 +170,27 @@ class TestYTComment(unittest.TestCase):
 class TestYTCommentThread(unittest.TestCase):
   def test_comment_list(self):
     dbsession=SqlSingleton().mksession()
-    ytct=get_dbobject_if_exists(YTCommentThread,"Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
+    ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
     print(ytct.get_comment_list(True))
 
 
   def test_I_posted(self):
     dbsession=SqlSingleton().mksession()
-    ytct=get_dbobject_if_exists(YTCommentThread,"Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
+    ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
     self.assertEqual(ytct.i_posted_there(),True)
     #self.assertEqual(ytc.has_me() ,True)
 
 
   def test_compute_interest(self):
     dbsession=SqlSingleton().mksession()
-    ytct=get_dbobject_if_exists(YTCommentThread,"Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
-    print("GARP: "+str(ytct.compute_interest()))
+    ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
+    if (ytct):
+      print("GARP: "+str(ytct.compute_interest()))
 
 
 def simple_test():
   dbsession=SqlSingleton().mksession()
-  ytct=YTCommentThread("Ugw-nxDnrTc7njDEzsh4AaABAg",dbsession)
+  ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
   print(ytct.compute_interest())
 
 # --------------------------------------------------------------------------
