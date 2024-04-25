@@ -12,6 +12,7 @@ class SqlTask(TkTask):
     super().__init__(None,priority,semaphore)
 
   def pre_run(self):
+    logging.debug(type(self).__name__+".pre_run(): START")
     # We are now in out new thread
     # lets create a session we will work in
     # and instantiate an object that belongs to it
@@ -20,9 +21,11 @@ class SqlTask(TkTask):
     self.o=get_dbobject_if_exists(self.cls,self.oid,self.dbsession)
 
   def do_run(self):
+    logging.debug(type(self).__name__+".do_run(): START")
     self.o.sql_task_threaded(self.dbsession)
 
   def post_run(self):
+    logging.debug(type(self).__name__+".post_run(): START")
     self.dbsession.merge(self.o)
     self. dbsession.commit()
     if (self.semaphore):
