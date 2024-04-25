@@ -97,6 +97,8 @@ class YTCommentThread():
             has_me_after+=1
         if (c.updated > most_recent_reply):
           most_recent_reply=c.updated
+    if (most_recent_me <= ignore_before):
+      from_me=0
     interest_level=(from_me)*(replies_after+has_me_after*10)
 
     if (most_recent_me < datetime.datetime(2001, 1, 1)):
@@ -147,7 +149,7 @@ class YTCommentThreadList():
     return t
 
   def get_newest_thread_of_interest(self):
-    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level).limit(1)
+    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(1)
     if (threads.count()==0):
       return None
     t=YTCommentThread(threads[0].tid)
@@ -161,9 +163,13 @@ class YTCommentThreadList():
     cmt=get_dbobject_if_exists(YTCommentRecord,cid,self.dbsession)
     if (cmt):
       tid=cmt.parent
+      if (tid == None):
+        tid=cmt.cid
       tcwr=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
       tcwr.ignore_before=cmt.updated
       self.dbsession.commit()
+      yct=YTCommentThread(tid,self.dbsession)
+      yct.set_interest()
 
 class TestYTComment(unittest.TestCase):
   def test_from(self):
