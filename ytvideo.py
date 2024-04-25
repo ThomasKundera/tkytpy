@@ -55,20 +55,31 @@ class YTVideo(YTVideoRecord):
       'title':     self.title,
     }
 
+def get_video_ids_from_file(fn):
+  vl=[]
+  f=open(fn,'rt')
+  for line in f.readlines():
+    res=line.split('=')
+    if (len(res)==2):
+      jnk=res[0].strip()
+      yid=res[1].strip()
+      vl.append(yid)
+  return vl
+
+
+
 
 def import_from_file(dbsession):
+  vl=get_video_ids_from_file('yturls.txt')
   from sqlsingleton import get_dbsession, get_dbobject, get_dbobject_if_exists
-  f=open('parents-id.txt','rt')
-  for line in f.readlines():
-    res=line.split(',')
-    if (len(res)==2):
-      tid=res[0].strip()
-      yid=res[1].strip()
+  for yid in vl:
       yv=get_dbobject_if_exists(YTVideo,yid,dbsession)
       if (not yv) or (yv.valid==None):
         if (yv): dbsession.delete(yv)
         logging.debug("Adding "+str(yid))
         yv=get_dbobject(YTVideo,yid,dbsession,False)
+        if (not yv.valid):
+          dbsession.delete(yv)
   dbsession.commit()
 
 
