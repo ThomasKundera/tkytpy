@@ -23,7 +23,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
   done                     = sqlalchemy.Column(sqlalchemy.Boolean)
   interest_level           = sqlalchemy.Column(sqlalchemy.Integer)
   most_recent_me           = sqlalchemy.Column(sqlalchemy.DateTime)
-  tbd_replies_after        = sqlalchemy.Column(sqlalchemy.Boolean)
+  most_recent_reply        = sqlalchemy.Column(sqlalchemy.DateTime)
   ignore_before            = sqlalchemy.Column(sqlalchemy.DateTime)
   lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
   etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
