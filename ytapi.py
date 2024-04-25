@@ -24,9 +24,6 @@ class DataCache:
   def __init__(self):
     self.cache=Cache("./data")
 
-#  def __del__(self):
-#    self.cache.close()
-
   def answer(self,key):
     logging.debug("DataCache.answer(): START")
     res=self.cache.get(key)
@@ -41,6 +38,42 @@ class DataCache:
     pki=pickle.dumps(ci)
     self.cache.set(key,pki)
 
+# Built  to mimick youtube API so that we don't have to change the rest of the code at all
+# Likely overcomplex, but works.
+
+class YtApiExecute:
+  def __init__(self,what,args):
+    self.what=what
+    self.args=args
+
+  def execute(self,force=None):
+    return self.what(force,self.args)
+
+class YtApiWork:
+  def __init__(self,ytapi):
+    self.ytapi=ytapi
+
+class YtApicommentThreads(YtApiWork):
+  def  __init__(self,ytapi):
+    super().__init__(ytapi)
+
+  def list(self,**kwargs):
+    return YtApiExecute(self.ytapi.execute_commentthread_list,kwargs)
+
+class YtApicomments(YtApiWork):
+  def  __init__(self,ytapi):
+    super().__init__(ytapi)
+
+  def list(self,**kwargs):
+    return YtApiExecute(self.ytapi.execute_comments_list,kwargs)
+
+class YtApivideos(YtApiWork):
+  def  __init__(self,ytapi):
+    super().__init__(ytapi)
+
+  def list(self,**kwargs):
+    return YtApiExecute(self.ytapi.execute_videos_list,kwargs)
+
 class YtApi(metaclass=tksingleton.SingletonMeta):
   def __init__(self,wait_time=1):
     self.youtube=build('youtube','v3',
@@ -48,7 +81,10 @@ class YtApi(metaclass=tksingleton.SingletonMeta):
     self.wait_time=wait_time
     self.lastrun=datetime.datetime.now()
     self.cache=DataCache()
+    self.ytacommentThreads=YtApicommentThreads(self)
+    self.ytacomments=YtApicomments(self)
     super().__init__()
+    self.ytavideos=YtApivideos(self)
 
   def wait_a_bit(self):
     now=datetime.datetime.now()
@@ -58,31 +94,48 @@ class YtApi(metaclass=tksingleton.SingletonMeta):
     logging.debug("YtApi.wait_a_bit(): Sleeping "+str(st)+"s")
     time.sleep(st) # This impose less than 10.000 calls per day.
 
-  def process_request(self,request,ytr):
+  def process_request(self,force,request,ytr):
     logging.debug("YtApi.process_request(): START")
     key=json.loads(ytr.to_json())['uri']
-    answer=self.cache.answer(key)
-    if (answer): return answer
+    if not force:
+      answer=self.cache.answer(key)
+      if (answer): return answer
     self.wait_a_bit()
     answer=ytr.execute()
     self.cache.set(key,request,answer)
     return answer
 
-  def process_request_commentthread_list(self,request):
+  def execute_commentthread_list(self,force,request):
     ytr=self.youtube.commentThreads().list(**request)
-    return (self.process_request(request,ytr))
+    return (self.process_request(force,request,ytr))
+
+  def execute_comments_list(self,force,request):
+    ytr=self.youtube.comments().list(**request)
+    return (self.process_request(force,request,ytr))
+
+  def execute_videos_list(self,force,request):
+    ytr=self.youtube.videos().list(**request)
+    return (self.process_request(force,request,ytr))
+
+  def commentThreads(self):
+    return self.ytacommentThreads
+
+  def comments(self):
+    return self.ytacomments
+
+  def videos(self):
+    return self.videos
 
 
 # --------------------------------------------------------------------------
 def main():
   logging.debug("ytapi test: START")
-  someid='j2GXgMIYgzU'
+  someid='iphcyNWFD10'
   yta=YtApi()
   for i in range(3):
-    yta.process_request_commentthread_list({'part': 'id,snippet',
-                                          'videoId': someid,
-                                          'maxResults': 2,
-                                          'textFormat': 'html'})
+    request=yta.commentThreads().list(part='id,snippet',videoId=someid,maxResults=2,textFormat='html')
+    print(request.execute())
+  print(request.execute(True))
   logging.debug("tkyoutube test: END")
 
 # --------------------------------------------------------------------------
