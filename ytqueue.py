@@ -11,6 +11,7 @@ from sqltask import SqlTaskUniq
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
+
 # FIXME: should the design here not mix SQL/YT and only care about
 # fetching the data?
 class YtTask(SqlTaskUniq):
@@ -61,7 +62,7 @@ class TestClass:
 
 # --------------------------------------------------------------------------
 def main():
-  logging.debug("tkyoutube test: START")
+  logging.debug("ytqueue test: START")
   #t1=TestClass('Ugw2LzdFdeWCnk6vwUV4AaABAg')
   t1=TestClass('j2GXgMIYgzU')
   #t1=TestClass('iphcyNWFD10')
@@ -69,7 +70,7 @@ def main():
   #t1=TestClass('aBr2kKAHN6M')
 
   YtQueue().join()
-  logging.debug("tkyoutube test: END")
+  logging.debug("ytqueue test: END")
 
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
