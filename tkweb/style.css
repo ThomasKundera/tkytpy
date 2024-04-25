@@ -9,7 +9,13 @@ div.vcontrol {
 }
 
 .threaddiv {
-     border: 3px solid;
+    border: 3px solid;
+    border-color: #FF00AA;
+    padding: 5px;
+}
+
+div.oldnewdiv {
+    border: 3px solid;
     border-color: #FF00AA;
     padding: 5px;
 }
