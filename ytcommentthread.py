@@ -139,7 +139,7 @@ class YTCommentThreadList():
     return
 
   def get_oldest_thread_of_interest(self):
-    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.interest_level.desc()).limit(1)
+    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.most_recent_me).limit(1)
     if (threads.count()==0):
       return None
     t=YTCommentThread(threads[0].tid)
