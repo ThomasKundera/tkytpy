@@ -17,8 +17,6 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class YTThreadsEvaluationThread:
   def __init__(self,field_storage):
     self.field_storage=field_storage
-    # dbsession for this thread
-    self.dbsession=SqlSingleton().mksession()
 
   def run(self):
     logging.debug("YTThreadsEvaluationThread.run(): START")
@@ -26,29 +24,26 @@ class YTThreadsEvaluationThread:
     self.spint.start()
     logging.debug("YTThreadsEvaluationThread.run: END")
 
-  def do_spin(self,chunck_size):
-    chunck_size=10 # DEBUG
-    #tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.done==True).order_by(nulls_first(YTCommentWorkerRecord.lastcompute)).limit(chunck_size)
-    #tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.done==True).order_by(
-    #  case([(or_(YTCommentWorkerRecord.lastcompute.is_(None), YTCommentWorkerRecord.lastcompute == ""), 0)], else_=1),YTCommentWorkerRecord.lastcompute ).limit(chunck_size)
-    tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.done==True).order_by(YTCommentWorkerRecord.lastcompute).limit(chunck_size)
-
-    #tteval=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level!=0).order_by(YTCommentWorkerRecord.interest_level.desc()).limit(chunck_size)
-
+  def do_spin(self,dbsession,chunck_size):
+    chunck_size=100
+    tteval=dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.done==True).order_by(YTCommentWorkerRecord.lastcompute).limit(chunck_size)
     count=0
     for t in tteval:
-      YTCommentThread(t.tid,self.dbsession).set_interest()
+      print(t.lastcompute)
+      YTCommentThread(t.tid,dbsession).set_interest()
       count+=1
-    self.dbsession.commit()
+    dbsession.commit()
     logging.debug("YTThreadsEvaluationThread.do_spin: END: processed "+str(count)+" items")
 
   def spin(self):
     logging.debug("YTThreadsEvaluationThread.spin: START")
     if (not self.field_storage):
       return # For tests, mostly
+    # dbsession for this thread
+    dbsession=SqlSingleton().mksession()
     while True:
       time.sleep(1)
-      self.do_spin(100)
+      self.do_spin(dbsession,100)
 
 
 
