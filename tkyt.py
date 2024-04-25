@@ -49,6 +49,7 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
     return {}
 
   def set_ignore_from_comment(self,cid):
+    if (not cid): return
     self.commentthreadlist.set_ignore_from_comment(cid)
 
 
