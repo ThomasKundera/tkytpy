@@ -67,7 +67,7 @@ class YTCommentThread():
       # BUG here
       raise
       return self.dbsession.query(YTComment).filter( (YTComment.parent == self.tid) or (YTComment.cid == self.tid) ).order_by(YTComment.updated)
-    return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated.desc())
+    return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated)
 
 
   def i_posted_there(self):
@@ -89,14 +89,19 @@ class YTCommentThread():
     most_recent_reply_after=datetime.datetime(2000, 1, 1)
     from_me=False
     for c in comments:
+      #logging.debug("YTCommentThread.compute_interest: 1: Evaluating: "+c.cid+" "+str(c.updated))
       if (c.from_me(self.dbsession)):
         from_me+=1
-      if (from_me>0):
+        replies_after=0
+        has_me_after=0
+      elif (from_me>0):
         replies_after+=1
         if (c.has_me()):
            has_me_after+=1
         if (c.updated > most_recent_reply_after):
           most_recent_reply_after=c.updated
+      #logging.debug("YTCommentThread.compute_interest: replies_after: "+str(replies_after))
+      #logging.debug("YTCommentThread.compute_interest: has_me_after: "+str(has_me_after))
     if (True):
       Δt=(datetime.datetime.now()-most_recent_reply_after).total_seconds()
       Δt=min(1,Δt) # As we want the inverse
@@ -105,7 +110,7 @@ class YTCommentThread():
       # we'll convert <1 values to negative integers
       if (τ<1):
         τ=-1/τ
-      value=(from_me)*(replies_after+has_me_after*10)*τ
+      value=(from_me)*(replies_after+has_me_after*10) #*τ
       return int(value)
     return 0
 
@@ -187,8 +192,16 @@ class TestYTCommentThread(unittest.TestCase):
     ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
     print("GARP: "+str(ytct.compute_interest()))
 
+
+def simple_test():
+  dbsession=SqlSingleton().mksession()
+  ytct=YTCommentThread("Ugw-nxDnrTc7njDEzsh4AaABAg",dbsession)
+  print(ytct.compute_interest())
+
 # --------------------------------------------------------------------------
 def main():
+  simple_test()
+  return
   unittest.main()
   return
   #yct=YTCommentThread('Ugz-g04lVUjL5K8Sv0h4AaABAg')
