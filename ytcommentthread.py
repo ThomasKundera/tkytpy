@@ -66,45 +66,52 @@ class YTCommentThread():
         return True
     return False
 
-  def compute_interest(self):
+  def compute_interest(self,cwr=None):
     logging.debug("YTCommentThread.compute_interest: START")
     comments=self.get_comment_list(True)
     has_me=0
     from_me=0
     has_me_after=0
     replies_after=0
-    most_recent_reply_after=datetime.datetime(2000, 1, 1)
-    from_me=False
+    most_recent_me=datetime.datetime(2000, 1, 1)
+    most_recent_reply=datetime.datetime(2000, 1, 1)
+    ignore_before=None
+    if (cwr):
+      ignore_before=cwr.ignore_before
+    if ignore_before ==  None:
+      ignore_before=datetime.datetime(2000, 1, 1)
+
     for c in comments:
-      #logging.debug("YTCommentThread.compute_interest: 1: Evaluating: "+c.cid+" "+str(c.updated))
       if (c.from_me(self.dbsession)):
         from_me+=1
         replies_after=0
         has_me_after=0
-      elif (from_me>0):
-        replies_after+=1
-        if (c.has_me()):
-           has_me_after+=1
-        if (c.updated > most_recent_reply_after):
-          most_recent_reply_after=c.updated
-      #logging.debug("YTCommentThread.compute_interest: replies_after: "+str(replies_after))
-      #logging.debug("YTCommentThread.compute_interest: has_me_after: "+str(has_me_after))
-    if (True):
-      Δt=(datetime.datetime.now()-most_recent_reply_after).total_seconds()
-      Δt=min(1,Δt) # As we want the inverse
-      τ=((365.*24*3600.)/1000000)/Δt # Will be 1 or less if comment older than one year
-      # As we are for now working with integers only,
-      # we'll convert <1 values to negative integers
-      if (τ<1):
-        τ=-1/τ
-      value=(from_me)*(replies_after+has_me_after*10) #*τ
-      return int(value)
-    return 0
+        if (c.updated > most_recent_me):
+          most_recent_me=c.updated
+      else:
+        if (c.updated < ignore_before):
+          continue
+        if (from_me>0):
+          replies_after+=1
+          if (c.has_me()):
+            has_me_after+=1
+        if (c.updated > most_recent_reply):
+          most_recent_reply=c.updated
+    interest_level=(from_me)*(replies_after+has_me_after*10)
+
+    if (most_recent_me < datetime.datetime(2001, 1, 1)):
+      most_recent_me = None
+
+    if (cwr):
+      cwr.interest_level=interest_level
+      cwr.most_recent_me=most_recent_me
+      cwr.ignore_before=most_recent_me
+      cwr.most_recent_reply=most_recent_reply
+    return interest_level
 
   def set_interest(self,commit=True):
-    interest_level=self.compute_interest()
     cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,self.dbsession)
-    cwr.interest_level=interest_level
+    self.compute_interest(cwr)
     cwr.lastcompute=datetime.datetime.now()
     if (commit):
       self.dbsession.commit()
@@ -163,20 +170,20 @@ class TestYTComment(unittest.TestCase):
 class TestYTCommentThread(unittest.TestCase):
   def test_comment_list(self):
     dbsession=SqlSingleton().mksession()
-    ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
+    ytct=get_dbobject_if_exists(YTCommentThread,"Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
     print(ytct.get_comment_list(True))
 
 
   def test_I_posted(self):
     dbsession=SqlSingleton().mksession()
-    ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
+    ytct=get_dbobject_if_exists(YTCommentThread,"Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
     self.assertEqual(ytct.i_posted_there(),True)
     #self.assertEqual(ytc.has_me() ,True)
 
 
   def test_compute_interest(self):
     dbsession=SqlSingleton().mksession()
-    ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
+    ytct=get_dbobject_if_exists(YTCommentThread,"Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
     print("GARP: "+str(ytct.compute_interest()))
 
 
@@ -187,8 +194,8 @@ def simple_test():
 
 # --------------------------------------------------------------------------
 def main():
-  simple_test()
-  return
+  #simple_test()
+  #return
   unittest.main()
   return
   #yct=YTCommentThread('Ugz-g04lVUjL5K8Sv0h4AaABAg')
