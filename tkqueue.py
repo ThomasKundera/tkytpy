@@ -52,7 +52,7 @@ class QueueWork(metaclass=tksingleton.SingletonMeta):
   def worker(self):
     while True:
       item = self.q.get()
-      logging.debug("QueueWork.worker(): Working on "+str(item)+". ( about "+str(self.q.qsize())+" elements remaining )")
+      logging.debug("QueueWork.worker(): Working on: "+str(item)+". ( about "+str(self.q.qsize())+" elements remaining )")
       self.do_work(item)
       self.q.task_done()
       #time.sleep(1)
