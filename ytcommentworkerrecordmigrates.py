@@ -32,11 +32,15 @@ def init_db():
 
 
 def migrates(dbsession):
+  n=0
   for c6 in dbsession.query(YTCommentWorkerRecord6):
-    c7=get_dbobject(YTCommentWorkerRecord,c6.tid,False)
+    c7=get_dbobject(YTCommentWorkerRecord,c6.tid,dbsession,False)
     dbsession.add(c7)
     c7.copy_from(c6)
     c7.lastcompute=None
+    n+=1
+    if (not n % 100):
+      print (" ================== ROW "+str(n)+" PROCESSED ============")
 
 
 # --------------------------------------------------------------------------
