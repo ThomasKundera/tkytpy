@@ -33,10 +33,11 @@ class SqlRecord:
       setattr(self, k, value)
 
   def call_sql_task_threaded(self,priority=0,semaphore=None):
-    logging.debug(type(self).__name__+".sql_task_threaded(): START")
-    task=YtTask('populate:'+type(self).__name__+"-"+self.get_id(),type(self),self.get_id(),priority,semaphore)
+    logging.debug(type(self).__name__+".call_sql_task_threaded(): START")
+    task=YtTask('populate: '+type(self).__name__
+                +" - "+str(self.get_id()),type(self),self.get_id(),priority,semaphore)
     YtQueue().add(task)
-    logging.debug(type(self).__name__+".sql_task_threaded(): END")
+    logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
 
   def get_priority(self):
     logging.debug(type(self).__name__+".get_priority(): START")
