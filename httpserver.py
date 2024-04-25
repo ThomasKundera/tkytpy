@@ -56,6 +56,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.get_main_stuff()
     if cmd == 'get_oldest_thread_of_interest':
       return self.get_oldest_thread_of_interest()
+    if cmd == 'get_newest_thread_of_interest':
+      return self.get_newest_thread_of_interest()
     if cmd == 'get_thread':
       return self.get_thread(js['tid'])
     if cmd == 'set_ignore_from_comment':
@@ -71,6 +73,9 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
 
   def get_oldest_thread_of_interest(self):
     return self.tkyt.get_oldest_thread_of_interest()
+
+  def get_newest_thread_of_interest(self):
+    return self.tkyt.get_newest_thread_of_interest()
 
   def get_thread(self,tid):
     return self.tkyt.get_thread(tid)
