@@ -1,55 +1,53 @@
 #!/usr/bin/env python3
 import time
 import sqlalchemy
-from sqlalchemy_utils import JSONType
+from sqlrecord      import SqlRecord
 
+from sqlsingleton import SqlSingleton, Base, get_dbobject
 from ytcommentworkerrecord import YTCommentWorkerRecord
-from sqlrecord             import SqlRecord, get_dbsession, get_dbobject, get_dbobject_if_exists
-
-from sqlsingleton import SqlSingleton, Base
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-class YTCommentWorkerRecord0_5(SqlRecord,Base):
-  __tablename__            = 'ytcommentworkerrecord0_5'
+class YTCommentWorkerRecord6(SqlRecord,Base):
+  __tablename__            = 'ytcommentworkerrecord0_6'
   tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   done                     = sqlalchemy.Column(sqlalchemy.Boolean)
+  interest_level           = sqlalchemy.Column(sqlalchemy.Integer)
+  lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
   etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
   nextcmtpagetoken         = sqlalchemy.Column(sqlalchemy.Unicode(200))
 
-  def __init__(self,dbsession,tid,commit=True):
-    self.tid=tid
+  def __init__(self,dbsession,cid,commit=True):
+    self.cid=cid
     super().__init__(dbsession,commit)
 
 
 
+def init_db():
+  Base.metadata.create_all()
+  print("Initialized the db")
+
 
 def migrates(dbsession):
-  for v5 in dbsession.query(YTCommentWorkerRecord0_5):
-    #print("Copying "+str(v5))
-    v6=get_dbobject(YTCommentWorkerRecord,v5.tid,dbsession,False)
-    v6.copy_from(v5)
-
+  for c6 in dbsession.query(YTCommentWorkerRecord6):
+    c7=get_dbobject(YTCommentWorkerRecord,c6.tid,False)
+    dbsession.add(c7)
+    c7.copy_from(c6)
+    c7.lastcompute=None
 
 
 # --------------------------------------------------------------------------
 def main():
-  import time
-  import ytqueue
-  logging.debug("YTCommentWorkerRecord migrates: START")
-  Base.metadata.create_all()
+  logging.debug("ytcommentrecord migrates: START")
+  init_db()
   dbsession=SqlSingleton().mksession()
   migrates(dbsession)
-  dbsession.flush()
   dbsession.commit()
-  dbsession.close()
   time.sleep(10)
-  logging.debug("YTCommentWorkerRecord migrates: END")
+  logging.debug("ytcommentrecord migrates: END")
 
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
