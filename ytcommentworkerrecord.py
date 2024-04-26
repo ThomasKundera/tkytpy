@@ -46,12 +46,17 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     # FIXME: refreshing priority value is also complex
     if (self.done):
       return sys.maxsize
+    dbsession=get_dbsession(self)
+    ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
+    if (not ytv): return sys.maxsize
+    if ((not ytv.valid) or (ytv.suspended)):
+      return sys.maxsize
     if not(self.lastwork):
-      return 0
+      return 100
     # FIXME
     Δt=datetime.datetime.now()-self.lastwork
     if (Δt.total_seconds() > 30*24*3600): # FIXME
-      return max((30*24*3600-Δt.total_seconds())/3,0)
+      return max((30*24*3600-Δt.total_seconds())/3,100)
     return sys.maxsize
 
   def populate_default(self):
