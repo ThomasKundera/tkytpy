@@ -50,7 +50,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       return 0
     # FIXME
     Δt=datetime.datetime.now()-self.lastwork
-    if (Δt.total_seconds() > 30*24*3600):
+    if (Δt.total_seconds() > 30*24*3600): # FIXME
       return max((30*24*3600-Δt.total_seconds())/3,0)
     return sys.maxsize
 
