@@ -7,7 +7,16 @@ function populateVideoList(obj) {
   mvldiv.setAttribute('class','videolist');
   for (const ytv of ytvlist) {
     const mdv = document.createElement("div");
-    mdv.setAttribute('class','video');
+    cls='video';
+    ytv.valid     = (ytv.valid.toLowerCase()     === "true");
+    ytv.suspended = (ytv.suspended.toLowerCase() === "true");
+    if (!ytv.valid) {
+      cls=cls+" vnotvalid";
+    } else if (ytv.suspended) {
+      cls=cls+" vsuspended";
+    }
+
+    mdv.setAttribute('class',cls);
 
     const ma1 = document.createElement("a");
     ma1.setAttribute('href',"https://www.youtube.com/watch?v="+ytv.yid)
@@ -28,17 +37,57 @@ function populateVideoList(obj) {
 
     const mip = document.createElement("input");
     mip.setAttribute('type','checkbox');
-    mip.setAttribute('id',"vmonitor");
-    mip.setAttribute('onclick',"monitor_video()");
-
+    mip.setAttribute('name','suspended');
+    mip.setAttribute('id',ytv.yid);
+    mip.checked=ytv.suspended
     mdc.appendChild(mip);
-    mdv.appendChild(mdc)
 
+    const lbl = document.createElement("label");
+    lbl.setAttribute('for',ytv.yid);
+    if (mip.checked) lbl.textContent="Unsuspend";
+    else lbl.textContent="Suspend";
+    mdc.appendChild(lbl);
+
+    mdv.appendChild(mdc)
     mvldiv.appendChild(mdv)
   }
   videodiv.appendChild(mvldiv);
 }
 
+async function manage_buttons(loc) {
+  if (!(loc.target && loc.target.nodeName == "INPUT")) {
+    return;
+  }
+  button=loc.target;
+  try {
+    action=button.getAttribute("name");
+    yid=button.getAttribute("id");
+    checked=button.checked;
+    request={
+      "command":"video_checkbox_action",
+      "action":action,
+      "yid": yid,
+      "checked": checked
+    };
+    const response = await fetch("http://localhost:8000/post", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(request)
+    });
+    update_video_list();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+const area = document.querySelector("#videodiv");
+// Take over form submission
+area.addEventListener("click", function(loc) {
+  manage_buttons(loc);
+});
 
 const form = document.querySelector("#addytvideo");
 

@@ -27,6 +27,9 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def get_video_list(self):
     return self.videos.get_video_dict()
 
+  def video_checkbox_action(self,action,yid,checked):
+    self.videos.checkbox_action(action,yid,checked)
+
   def get_newest_thread_of_interest(self):
     yth=self.commentthreadlist.get_newest_thread_of_interest()
     if (yth):

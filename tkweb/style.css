@@ -4,11 +4,21 @@ div.video {
     padding: 5px;
 }
 
+div.vnotvalid {
+    background-color: #AAA;
+    color: #333;
+}
+
+div.vsuspended {
+    background-color: #AAA;
+    color: #333;
+}
+
 div.vcontrol {
     float: right;
 }
 
-.threaddiv {
+div.threaddiv {
     border: 3px solid;
     border-color: #FF00AA;
     padding: 5px;
@@ -39,3 +49,4 @@ div.commenttext {
     width: 80%;
     text-align: justify;
 }
+

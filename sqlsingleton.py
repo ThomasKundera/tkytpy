@@ -50,7 +50,7 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
       host="127.0.0.1",
       database=db,
     )
-    self.engine          = sqlalchemy.create_engine(db_url, isolation_level="READ COMMITTED") #, echo=True)
+    self.engine          = sqlalchemy.create_engine(db_url, isolation_level="READ COMMITTED")#, echo=True)
     self.session_factory = sessionmaker(bind=self.engine)
     self.session_maker   = scoped_session(self.session_factory)
 

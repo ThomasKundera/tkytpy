@@ -24,8 +24,15 @@ class YTVideoList:
     dbsession=SqlSingleton().mksession()
     l=[]
     for v in dbsession.query(YTVideo):
-      print("video: "+str(v))
+      #print("video: "+str(v))
       if v.valid:
         l.append(v.to_dict())
     return  {'ytvlist': l}
 
+  def checkbox_action(self,action,yid,checked):
+    dbsession=SqlSingleton().mksession()
+    v=get_dbobject_if_exists(YTVideo,yid,dbsession)
+    if not v: return
+    if (action == "suspended"):
+      v.suspended=checked
+      dbsession.commit()
