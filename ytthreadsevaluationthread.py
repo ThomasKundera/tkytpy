@@ -29,12 +29,15 @@ class YTThreadsEvaluationThread:
     chunck_size=100
     tteval=dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.done==True).order_by(YTCommentWorkerRecord.lastcompute).limit(chunck_size)
     count=0
-    Δt=datetime.datetime.now()-tteval[0].lastcompute
-    if (Δt.total_seconds() < 10*60):
-      # Useless to recompute so often, waiting a bit and leaving
-      time.sleep(600)
-      return
+    if (tteval[0].lastcompute):
+      Δt=(datetime.datetime.now()-tteval[0].lastcompute).total_seconds()
+      if (Δt < 10*60):
+        # Useless to recompute so often, waiting a bit and leaving
+        time.sleep(600)
+        return
     for t in tteval:
+      if ( (t.lastcompute) and (t.lastcompute>t.lastwork)): # FIXME: forced recompute should be done when function changed
+        continue
       logging.debug("YTThreadsEvaluationThread.do_spin(): lastcompute: "+str(t.lastcompute))
       YTCommentThread(t.tid,dbsession).set_interest()
       count+=1
@@ -49,9 +52,6 @@ class YTThreadsEvaluationThread:
     while True:
       time.sleep(10)
       self.do_spin(dbsession,100)
-
-
-
 
 # --------------------------------------------------------------------------
 def main():
