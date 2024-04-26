@@ -67,7 +67,7 @@ class YTCommentThread():
     return False
 
   def compute_interest(self,cwr=None):
-    logging.debug("YTCommentThread.compute_interest: START")
+    #logging.debug("YTCommentThread.compute_interest: START")
     comments=self.get_comment_list(True)
     has_me=0
     from_me=0
@@ -97,8 +97,6 @@ class YTCommentThread():
             has_me_after+=1
         if (c.updated > most_recent_reply):
           most_recent_reply=c.updated
-    if (most_recent_me <= ignore_before):
-      from_me=0
     interest_level=(from_me)*(replies_after+has_me_after*10)
 
     if (most_recent_me < datetime.datetime(2001, 1, 1)):
