@@ -40,10 +40,14 @@ class YTSpinner:
     t.call_sql_task_threaded(1000,self.semaphore)
     logging.debug(type(self).__name__+".call_populate: END")
 
-  def do_spin(self):
-    logging.debug(type(self).__name__+"YTSpinner.do_spin(): START")
-    ol=[]
+  def get_items_to_process(self):
     od=self.field_storage.get_dict(self.cls)
+    return od
+
+  def do_spin(self):
+    logging.debug(type(self).__name__+".do_spin(): START")
+    ol=[]
+    od=self.get_items_to_process()
     for o in od.values():
       p=o.get_priority()
       ol.append((p,o))
