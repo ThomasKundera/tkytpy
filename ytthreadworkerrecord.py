@@ -10,6 +10,7 @@ from sqlrecord             import SqlRecord
 from ytcommentworkerrecord import YTCommentWorkerRecord
 from ytcommentrecord       import YTCommentRecord
 from ytauthorrecord        import YTAuthorRecord
+from ytvideorecord         import YTVideoRecord
 
 from sqlsingleton          import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
@@ -31,7 +32,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     super().__init__(dbsession,commit)
 
   def get_priority(self):
-    ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,self.dbsession)
+    dbsession=get_dbsession(self)
+    ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
     if (not ytv): return sys.maxsize
     if ((not ytv.valid) or (ytv.suspended)):
       return sys.maxsize
@@ -39,6 +41,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     if not(self.lastwork):
       return 0
     Δt=datetime.datetime.now()-self.lastwork
+    if (Δt<600):  # FIXME
+      return sys.maxsize
     # Fit that between 1000 and 2000
     # FIXME
     return max((30*24*3600-Δt.total_seconds())/3,0)
