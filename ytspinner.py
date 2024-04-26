@@ -53,7 +53,7 @@ class YTSpinner:
       self.call_populate(ols[0])
     else:
       logging.debug(type(self).__name__+".do_spin(): Nothing to do")
-      time.sleep(1)
+      time.sleep(10)
     logging.debug("YTSpinner.do_spin(): END")
 
   def spin(self):
