@@ -18,6 +18,13 @@ function populate_comment(refdiv,tlc) {
   ma1.setAttribute('href',"https://www.youtube.com/watch?v="+tlc.yid+"&lc="+tlc.cid);
   ma1.textContent="Online link";
   div.appendChild(ma1);
+  const p2 = document.createElement("p");
+  p2.textContent=tlc.cid
+  div.appendChild(p2)
+  const p3 = document.createElement("p");
+  p3.textContent=tlc.yid
+  div.appendChild(p3)
+
   refdiv.appendChild(div);
 }
 
