@@ -8,13 +8,6 @@ import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 # --------------------------------------------------------------------------
-def valid_url(url):
-  r = requests.head(url)
-  print(r)
-  return(r.status_code == 200)
-
-
-# --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTVideo(YTVideoRecord):
   def __init__(self,dbsession,yid,commit=True):
@@ -26,10 +19,6 @@ class YTVideo(YTVideoRecord):
       return
     self.valid=True
     super().__init__(dbsession,yid,commit)
-
-  def is_valid_id(self):
-    if (len(self.yid) != 11): return False
-    return valid_url(self.url)
 
   def get_dict(self):
     # FIXME: should use default
