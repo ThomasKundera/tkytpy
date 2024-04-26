@@ -17,12 +17,10 @@ def valid_url(url):
   print(r)
   return(r.status_code == 200)
 
-
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTVideoRecord(SqlRecord,Base):
-  __tablename__ = 'ytvideos0_6'
+  __tablename__ = 'ytvideos0_7'
   yid               = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
   valid             = sqlalchemy.Column(sqlalchemy.Boolean)
   populated         = sqlalchemy.Column(sqlalchemy.Boolean)
@@ -34,7 +32,7 @@ class YTVideoRecord(SqlRecord,Base):
   oldcommentcount   = sqlalchemy.Column(sqlalchemy.Integer)
   lastrefreshed     = sqlalchemy.Column(sqlalchemy.DateTime)
   oldrefreshed      = sqlalchemy.Column(sqlalchemy.DateTime)
-  monitor           = sqlalchemy.Column(sqlalchemy.Boolean)
+  monitor           = sqlalchemy.Column(sqlalchemy.Integer)
   suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
 
   def __init__(self,dbsession,yid,commit=True):
@@ -99,7 +97,7 @@ class YTVideoRecord(SqlRecord,Base):
     self.viewcount       = 0
     self.commentcount    = 0
     self.oldcommentcount = 0
-    self.monitor         = True
+    self.monitor         = 1
     self.suspended       = False
     self.lastrefreshed   = None
     self.oldrefreshed    = None
