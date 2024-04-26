@@ -31,6 +31,10 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     super().__init__(dbsession,commit)
 
   def get_priority(self):
+    ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,self.dbsession)
+    if (not ytv): return sys.maxsize
+    if ((not ytv.valid) or (ytv.suspended)):
+      return sys.maxsize
     # FIXME: refreshing priority value is also complex
     if not(self.lastwork):
       return 0
@@ -49,6 +53,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
   def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTThreadWorkerRecord.populate(): START")
+    # FIXME: can't handle video without any comment.
     if not (self.firstthreadcid):
       if (not self.nexttreadpagetoken):
         request=youtube.commentThreads().list(
