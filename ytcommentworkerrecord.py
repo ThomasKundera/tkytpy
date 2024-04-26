@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from sqlrecord       import SqlRecord
 from ytcommentrecord import YTCommentRecord
 from ytauthorrecord  import YTAuthorRecord
+from ytvideorecord         import YTVideoRecord
 
 from sqlsingleton    import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
@@ -54,10 +55,8 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     if not(self.lastwork):
       return 100
     # FIXME
-    Δt=datetime.datetime.now()-self.lastwork
-    if (Δt.total_seconds() > 30*24*3600): # FIXME
-      return max((30*24*3600-Δt.total_seconds())/3,100)
-    return sys.maxsize
+    Δt=(datetime.datetime.now()-self.lastwork).total_seconds()
+    return max((30*24*3600-Δt)/3,100)
 
   def populate_default(self):
     self.lastwork        =None
