@@ -2,12 +2,22 @@
 import datetime
 import json
 import sqlalchemy
+import requests
 
 from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 from sqlrecord    import SqlRecord
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
+# FIXME: I don't like to mix SQL with direct URL accesses, but that's easier.
+# --------------------------------------------------------------------------
+def valid_url(url):
+  r = requests.head(url)
+  print(r)
+  return(r.status_code == 200)
+
+
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -31,29 +41,43 @@ class YTVideoRecord(SqlRecord,Base):
     self.yid=yid
     super().__init__(dbsession,commit)
 
+
+  def is_valid_id(self):
+    if (len(self.yid) != 11): return False
+    return valid_url(self.url)
+
   def get_priority(self):
     # Lower the more prioritized, number should roughlt reflects
     # time (in second) before next update would be nice.
     # Refresh priority should depends heavily on interractive accesses
     # but we don't have that metric yet (FIXME)
 
+    if (self.suspended):
+      return sys.maxsize
+
+    Δt=datetime.datetime.now()-self.lastrefreshed
+    if (not self.valid):
+      if (Δt.total_seconds() > 30*24*3600):
+        return max((30*24*3600-Δt.total_seconds()),100)
+      return sys.maxsize
+
     if (not self.populated):
       return 100
     if (not self.monitor):
       returnsys.maxsize # Max easy to handle number
-    if (self.suspended):
-      return sys.maxsize
     # From here, without metrics, it's fuzzy
     # Lets use just time to last refresh, and tagetting once a month.
-    Δt=datetime.datetime.now()-self.lastrefreshed
     # FIXME
     if (Δt.total_seconds() > 30*24*3600):
-      return max((30*24*3600-Δt.total_seconds())/3,0)
+      return max((30*24*3600-Δt.total_seconds())/3,100)
     return sys.maxsize
 
 
   def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTVideoRecord.populate(): START")
+    if (not self.valid):
+      self.valid=self.is_valid_id()
+      return
     request=youtube.videos().list(part='snippet,statistics', id=self.yid)
     rawytdata = request.execute()
     if len(rawytdata['items']) != 1:
@@ -85,12 +109,6 @@ def main():
   from ytqueue         import YtQueue, YtTask
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
-  import_from_file(dbsession)
-  return
-  YtQueue(1)
-  v=get_dbobject(YTVideoRecord,'LaVip3J__8Y',dbsession)
-  dbsession.commit()
-  #return
   yvd=dbsession.query(YTVideoRecord)
   for v in yvd[:5]:
     v.call_sql_task_threaded()
