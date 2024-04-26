@@ -11,20 +11,20 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 class YTSpinner:
   def __init__(self,field_storage,cls):
-    logging.debug("YTSpinner.__init__(): START")
+    logging.debug(type(self).__name__+".__init__(): START")
     self.field_storage=field_storage
     self.cls=cls
     self.semaphore=Semaphore(1)
     self.modified_item=None
 
   def run(self):
-    logging.debug("YTSpinner.run(): START")
+    logging.debug(type(self).__name__+".run(): START")
     self.spint = Thread(target=self.spin)
     self.spint.start()
-    logging.debug("YTSpinner.run: END")
+    logging.debug(type(self).__name__+".run: END")
 
   def call_populate(self,item):
-    logging.debug("YTSpinner.call_populate: START")
+    logging.debug(type(self).__name__+".call_populate: START")
     SqlSingleton().monitor_threads(self.dbsession)
     # FIXME: this is some way to recover the data
     # that were not saved.
@@ -38,10 +38,10 @@ class YTSpinner:
     # Using priority here needs a careful evaluation.
     # So, we'll just give everything same for now.
     t.call_sql_task_threaded(1000,self.semaphore)
-    logging.debug("YTSpinner.call_populate: END")
+    logging.debug(type(self).__name__+".call_populate: END")
 
   def do_spin(self):
-    logging.debug("YTSpinner.do_spin(): START")
+    logging.debug(type(self).__name__+"YTSpinner.do_spin(): START")
     ol=[]
     od=self.field_storage.get_dict(self.cls)
     for o in od.values():
@@ -49,15 +49,15 @@ class YTSpinner:
       ol.append((p,o))
     ols=sorted(ol, key=lambda x: x[0])
     if (len(ols) and ols[0][0] < 1000000): # FIXME That value is arbitrary for now
-      logging.debug("YTSpinner.do_spin(): selected "+str(ols[0]))
+      logging.debug(type(self).__name__+".do_spin(): selected "+str(ols[0]))
       self.call_populate(ols[0])
     else:
       logging.debug(type(self).__name__+".do_spin(): Nothing to do")
       time.sleep(10)
-    logging.debug("YTSpinner.do_spin(): END")
+    logging.debug(type(self).__name__+".do_spin(): END")
 
   def spin(self):
-    logging.debug("YTSpinner.spin: START")
+    logging.debug(type(self).__name__+".spin: START")
     if (not self.field_storage):
       return # For tests, mostly
     # Now in main thread, time to create the dbsession.
