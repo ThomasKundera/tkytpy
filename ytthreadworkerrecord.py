@@ -39,13 +39,14 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       return sys.maxsize
     # FIXME: refreshing priority value is also complex
     if not(self.lastwork):
-      return 0
-    Δt=datetime.datetime.now()-self.lastwork
-    if (Δt<600):  # FIXME
-      return sys.maxsize
+      return 100
+    Δt=(datetime.datetime.now()-self.lastwork).total_seconds()
+    if (self.firstthreadcid): # We already done it once fully
+      if (Δt<24*3600):  # FIXME
+        return sys.maxsize
     # Fit that between 1000 and 2000
     # FIXME
-    return max((30*24*3600-Δt.total_seconds())/3,0)
+    return max((30*24*3600-Δt)/3,100)
 
 
   def populate_default(self):
