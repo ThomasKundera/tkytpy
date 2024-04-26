@@ -3,6 +3,7 @@ import unittest
 import datetime
 import sqlalchemy
 
+from sqlalchemy import or_, and_
 from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytcommentrecord        import YTCommentRecord
 from ytauthorrecord         import YTAuthorRecord
@@ -49,11 +50,11 @@ class YTCommentThread():
       self.dbsession=dbsession
 
   def get_comment_list(self,with_tlc=False):
-    with_tlc=False # FIXME
+    #with_tlc=False
     if (with_tlc):
-      # BUG here
-      raise
-      return self.dbsession.query(YTComment).filter( (YTComment.parent == self.tid) or (YTComment.cid == self.tid) ).order_by(YTComment.updated)
+      return self.dbsession.query(YTComment).filter(
+        or_((YTComment.parent == self.tid) , (YTComment.cid == self.tid))
+        ).order_by(YTComment.updated)
     return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated)
 
 
