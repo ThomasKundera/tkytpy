@@ -62,7 +62,7 @@ class YTVideoRecord(SqlRecord,Base):
     if (not self.populated):
       return 100
     if (not self.monitor):
-      returnsys.maxsize # Max easy to handle number
+      return sys.maxsize # Max easy to handle number
     # From here, without metrics, it's fuzzy
     # Lets use just time to last refresh, and tagetting once a month.
     # FIXME
