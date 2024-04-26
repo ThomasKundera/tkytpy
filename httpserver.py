@@ -51,7 +51,9 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     if cmd == 'get_video_list':
       return self.get_video_list()
     if cmd == 'add_video':
-      return self.add_video(js['ytid'])
+      return self.add_video(js['ytid']) # FIXME: yid
+    if cmd == 'video_checkbox_action':
+      return self.video_checkbox_action(js['action'],js['yid'],js['checked'])
     if cmd == 'get_main_stuff':
       return self.get_main_stuff()
     if cmd == 'get_oldest_thread_of_interest':
@@ -70,6 +72,9 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
 
   def get_video_list(self):
     return self.tkyt.get_video_list()
+
+  def video_checkbox_action(self,action,yid,checked):
+    return self.tkyt.video_checkbox_action(action,yid,checked)
 
   def get_oldest_thread_of_interest(self):
     return self.tkyt.get_oldest_thread_of_interest()
