@@ -44,14 +44,15 @@ class YTCommentWorkerRecord(SqlRecord,Base):
 
 
   def get_priority(self):
+    #logging.debug(type(self).__name__+".get_priority(): START")
     # FIXME: refreshing priority value is also complex
     if (self.done):
       return sys.maxsize
-    dbsession=get_dbsession(self)
-    ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
-    if (not ytv): return sys.maxsize
-    if ((not ytv.valid) or (ytv.suspended)):
-      return sys.maxsize
+    #dbsession=get_dbsession(self) # FIXME: this is too slow
+    #ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
+    #if (not ytv): return sys.maxsize
+    #if ((not ytv.valid) or (ytv.suspended)):
+    #  return sys.maxsize
     if not(self.lastwork):
       return 100
     # FIXME
