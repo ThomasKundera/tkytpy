@@ -8,6 +8,7 @@ from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytcommentrecord        import YTCommentRecord
 from ytauthorrecord         import YTAuthorRecord
 from sqlrecord              import SqlRecord
+from ytvideorecord          import YTVideoRecord
 
 from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
@@ -146,14 +147,24 @@ class YTCommentThreadList():
     return
 
   def get_oldest_thread_of_interest(self):
-    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.most_recent_me).limit(1)
+    threads=self.dbsession.query(YTCommentWorkerRecord).join(
+      YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
+        and_(YTCommentWorkerRecord.interest_level != 0 ,
+             YTVideoRecord.valid == True,
+             YTVideoRecord.suspended ==False)
+        ).order_by(YTCommentWorkerRecord.most_recent_me).limit(1)
     if (threads.count()==0):
       return None
     t=YTCommentThread(threads[0].tid)
     return t
 
   def get_newest_thread_of_interest(self):
-    threads=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(1)
+    threads=self.dbsession.query(YTCommentWorkerRecord).join(
+      YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
+        and_(YTCommentWorkerRecord.interest_level != 0,
+             YTVideoRecord.valid == True,
+             YTVideoRecord.suspended ==False)
+        ).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(1)
     if (threads.count()==0):
       return None
     t=YTCommentThread(threads[0].tid)
