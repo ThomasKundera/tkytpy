@@ -77,7 +77,7 @@ class YtApivideos(YtApiWork):
 # So be simple and clear:
 # YtApi should just never be called directly, but only through YtQueue
 class YtApi:
-  def __init__(self,wait_time=1):
+  def __init__(self,wait_time=10):
     self.youtube=build('youtube','v3',
                        developerKey=google_api_key, cache_discovery=False)
     self.wait_time=wait_time
