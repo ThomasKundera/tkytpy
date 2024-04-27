@@ -19,6 +19,9 @@ class YTCommentsSpinner(YTSpinner):
     logging.debug(type(self).__name__+"get_item_to_process.(): START")
     now=datetime.datetime.now().timestamp()
 
+    # To add a bit of fuziness, YTVideoRecord.monitor is scrambled a bit
+    # FIXME: would need floats
+
     ycwr=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTVideoRecord.valid == True,
