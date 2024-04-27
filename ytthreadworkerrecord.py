@@ -56,6 +56,15 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     self.nexttreadpagetoken=None
     self.nextcmtpagetoken=None
 
+  def reorder_threads(self,threads):
+    """As YT is putting pinned commentss top, it breaks
+    the algo. Lets reorder by date.
+    """
+    threads.sort(
+      key=lambda x: datetime.datetime.strptime(x['snippet']['topLevelComment']['snippet']['updatedAt'],"%Y-%m-%dT%H:%M:%SZ"), reverse=True)
+    return threads
+
+
   def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START")
     # FIXME: can't handle video without any comment.
@@ -66,6 +75,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           videoId=self.yid,
           maxResults=100)
       result=request.execute(True)
+      result['items']=self.reorder_threads(result['items'])
       thread=result['items'][0]
       tid=thread['id']
       if (tid == self.firstthreadcid):
@@ -91,6 +101,9 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           pageToken=self.nexttreadpagetoken,
           maxResults=100)
       result=request.execute()
+      if (not self.nexttreadpagetoken):
+        # Again reordering
+        result['items']=self.reorder_threads(result['items'])
       for thread in result['items']:
         tid=thread['id']
         etag=thread['etag']
