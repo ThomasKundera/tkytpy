@@ -44,6 +44,17 @@ class YTSpinner:
     od=self.field_storage.get_dict(self.cls)
     return od
 
+
+  def do_spin_new(self):
+    logging.debug(type(self).__name__+".do_spin_new(): START")
+    item=self.get_item_to_process()
+    if item:
+      self.call_populate(item)
+    else:
+      logging.debug(type(self).__name__+".do_spin_new(): Nothing to do")
+      time.sleep(10)
+    logging.debug(type(self).__name__+".do_spin_new(): END")
+
   def do_spin(self):
     logging.debug(type(self).__name__+".do_spin(): START")
     ol=[]
