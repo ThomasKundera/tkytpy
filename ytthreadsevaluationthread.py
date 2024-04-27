@@ -29,11 +29,14 @@ class YTThreadsEvaluationThread:
     chunck_size=100
     tteval=dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.done==True).order_by(YTCommentWorkerRecord.lastcompute).limit(chunck_size)
     count=0
-    if (tteval[0].lastcompute):
-      Δt=(datetime.datetime.now()-tteval[0].lastcompute).total_seconds()
-      if (Δt < 10*60):
+    # FIXME: date at which recompute is meaningful
+    lastcompute=tteval[0].lastcompute
+    if (lastcompute):
+      print("SHOULD NOT BE NONE: "+str(lastcompute)+" "+str(tteval[0].lastcompute))
+      Δt=(datetime.datetime.now()-lastcompute).total_seconds()
+      if (Δt < 10*60): # FIXME
         # Useless to recompute so often, waiting a bit and leaving
-        time.sleep(600)
+        time.sleep(30)
         return
     for t in tteval:
       if ( (t.lastcompute) and (t.lastcompute>t.lastwork)): # FIXME: forced recompute should be done when function changed
