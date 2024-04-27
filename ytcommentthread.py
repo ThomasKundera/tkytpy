@@ -127,6 +127,8 @@ class YTCommentThread():
   def to_dict(self):
     d={}
     cwr=get_dbobject_if_exists(YTComment,self.tid,self.dbsession)
+    if not cwr:
+      return {}
     tlc=cwr.to_dict()
     d={'tlc': tlc}
     cl=[]
