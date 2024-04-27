@@ -14,6 +14,35 @@ class YTCommentsSpinner(YTSpinner):
   def __init__(self,field_storage):
     super().__init__(field_storage,YTCommentWorkerRecord)
 
+
+  def get_item_to_process(self):
+    logging.debug(type(self).__name__+"get_item_to_process.(): START")
+    now=datetime.datetime.now().timestamp()
+
+    ycwr=self.dbsession.query(YTCommentWorkerRecord).join(
+      YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
+        and_(YTVideoRecord.valid == True,
+             YTVideoRecord.suspended ==False,
+             YTVideoRecord.monitor>0)
+        ).order_by(
+          case(
+            (YTCommentWorkerRecord.lastwork == None,1000./YTVideoRecord.monitor),
+          else_=(
+            case(
+              (and_(
+              YTCommentWorkerRecord.done == None,
+              func.unix_timestamp(YTCommentWorkerRecord.lastwork)<300),11*1000./YTVideoRecord.monitor),
+              else_=1000*(10.-func.least(func.log10(now-func.unix_timestamp(YTCommentWorkerRecord.lastwork)),9))/YTVideoRecord.monitor)
+              )
+          )).limit(1)
+    for o in ycwr:
+      return (1000,o) # FIXME 1000 is arbirary
+    return None # No matching item found
+
+  def do_spin(self):
+    super().do_spin_new()
+
+
   def get_items_to_process(self):
     logging.debug(type(self).__name__+"get_items_to_process.(): START")
     #dt=datetime.datetime(2024, 4, 26, 0, 31, 38).timestamp()
