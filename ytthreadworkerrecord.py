@@ -59,6 +59,23 @@ class YTThreadWorkerRecord(SqlRecord,Base):
   def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTThreadWorkerRecord.populate(): START")
     # FIXME: can't handle video without any comment.
+    if (self.firstthreadcid):
+      # Check if there is anything new:
+      request=youtube.commentThreads().list(
+          part='id,snippet',
+          videoId=self.yid,
+          maxResults=100)
+      result=request.execute(True)
+      thread=result['items'][0]
+      tid=thread['id']
+      if (tid == self.firstthreadcid):
+        # NOthing changed, return
+        return
+      # So it changed...
+      self.firstthreadcid=None
+      self.firstthreadcidcandidate=None
+      self.nexttreadpagetoken=None
+
     if not (self.firstthreadcid):
       if (not self.nexttreadpagetoken):
         request=youtube.commentThreads().list(
@@ -77,10 +94,16 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         etag=thread['etag']
         tlc=thread['snippet']['topLevelComment']
         cid=tlc['id'] # Is same at tid, actually
-        c=get_dbobject(YTCommentRecord,cid,dbsession)
         if (not self.firstthreadcidcandidate):
           self.firstthreadcidcandidate=tid
-
+        c=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
+        if (c): # That cid exists!
+          logging.debug("YTThreadWorkerRecord.populate(): Merged with old: "
+            +str(cid)+" "+str(self.yid))
+          self.firstthreadcid=self.firstthreadcidcandidate
+          break
+        # Still new stuff...
+        c=get_dbobject(YTCommentRecord,cid,dbsession)
         c.fill_from_json(tlc,False)
         c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
         c.set_yid_etag(self.yid,etag,False)
