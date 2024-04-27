@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlrecord       import SqlRecord
 from ytcommentrecord import YTCommentRecord
 from ytauthorrecord  import YTAuthorRecord
-from ytvideorecord         import YTVideoRecord
+from ytvideorecord   import YTVideoRecord
 
 from sqlsingleton    import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
@@ -67,16 +67,13 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     self.etag            =None
     self.nextcmtpagetoken=None
 
-  def sql_task_threaded(self,dbsession,youtube):
-    logging.debug("YTCommentWorkerRecord.populate(): START")
-    if (self.done):
-      logging.debug("YTCommentWorkerRecord.populate(): done: "+str(self.tid))
-      return
+  def sql_task_one_chunck(self,dbsession,youtube):
+    logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): START")
     if (not self.nextcmtpagetoken):
-      request=youtube.comments().list(
-        part='snippet',
-        parentId=self.tid,
-        maxResults=100)
+          request=youtube.comments().list(
+            part='snippet',
+            parentId=self.tid,
+            maxResults=100)
     else:
       request=youtube.comments().list(
         part='snippet',
@@ -100,10 +97,37 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       self.nexttreadpagetoken=result['nextPageToken']
     else:
       self.done=True
-      logging.debug("YTCommentWorkerRecord.populate(): is done: "+str(self.tid))
-
     self.lastwork=datetime.datetime.now()
-    logging.debug("YTCommentWorkerRecord.populate(): END")
+    logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): END")
+
+
+  def sql_task_threaded(self,dbsession,youtube):
+    logging.debug("YTCommentWorkerRecordsql_task_threaded.(): START")
+    if (self.done):
+      request=youtube.comments().list(
+            part='snippet',
+            parentId=self.tid,
+            maxResults=100)
+      result=request.execute(True)
+      if (len(result['items'])):
+        cid=result['items'][0]['id']
+        o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
+        if (o):
+          logging.debug("YTCommentWorkerRecordsql_task_threaded.(): Nothing changed")
+          self.lastwork=datetime.datetime.now()
+          return
+        self.done=False
+      else:
+        logging.debug("YTCommentWorkerRecordsql_task_threaded.(): No item")
+        self.lastwork=datetime.datetime.now()
+        return
+    v=0
+    while not self.done:
+      v+=1
+      if v>10: # Max nb of comments is 500, so 5 iterations.
+        raise  # Should not happens
+      self.sql_task_one_chunck(dbsession,youtube)
+    logging.debug("YTCommentWorkerRecord.sql_task_threaded: END")
 
 def import_from_file(dbsession):
   f=open('parents-id.txt','rt')
