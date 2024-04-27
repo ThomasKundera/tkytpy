@@ -20,10 +20,11 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTThreadWorkerRecord(SqlRecord,Base):
-  __tablename__ = 'ytthreadworkers0_5'
+  __tablename__ = 'ytthreadworkers0_6'
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   firstthreadcid           = sqlalchemy.Column(sqlalchemy.Unicode(50))
+  ftcdate                  = sqlalchemy.Column(sqlalchemy.DateTime)
   firstthreadcidcandidate  = sqlalchemy.Column(sqlalchemy.Unicode(50))
   nexttreadpagetoken       = sqlalchemy.Column(sqlalchemy.Unicode(200))
 
@@ -53,6 +54,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     self.lastwork=None
     self.firstthreadcidcandidate=None
     self.firstthreadcid=None
+    self.ftcdate=None
     self.nexttreadpagetoken=None
     self.nextcmtpagetoken=None
 
@@ -66,10 +68,13 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
 
   def sql_task_threaded(self,dbsession,youtube):
+    # For a single misplaced comment by that fkng ggl API
+    # we'll have to check
     logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START")
     # FIXME: can't handle video without any comment.
     if (self.firstthreadcid):
       # Check if there is anything new:
+      # FIXME: Fckd API put pinned comments top.
       request=youtube.commentThreads().list(
           part='id,snippet',
           videoId=self.yid,
