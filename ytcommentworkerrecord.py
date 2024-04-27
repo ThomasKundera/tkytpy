@@ -82,6 +82,12 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     result=request.execute()
     for comment in result['items']:
       cid=comment['id']
+      o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
+      if (o):
+          logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old")
+          self.done=True
+          self.lastwork=datetime.datetime.now()
+          return
       c=get_dbobject(YTCommentRecord,cid,dbsession)
       # yid is not in the subcomment (only in topcomment)
       # adding it by hand
@@ -113,12 +119,12 @@ class YTCommentWorkerRecord(SqlRecord,Base):
         cid=result['items'][0]['id']
         o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
         if (o):
-          logging.debug("YTCommentWorkerRecordsql_task_threaded.(): Nothing changed")
+          logging.debug("YTCommentWorkerRecord.sql_task_threaded(): Nothing changed")
           self.lastwork=datetime.datetime.now()
           return
         self.done=False
       else:
-        logging.debug("YTCommentWorkerRecordsql_task_threaded.(): No item")
+        logging.debug("YTCommentWorkerRecord.sql_task_threaded(): No item")
         self.lastwork=datetime.datetime.now()
         return
     v=0
