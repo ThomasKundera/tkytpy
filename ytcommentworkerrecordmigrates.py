@@ -41,7 +41,7 @@ def migrates(dbsession):
     n+=1
     if (not n % 100):
       print (" ================== ROW "+str(n)+" PROCESSED ============")
-
+  dbsession.commit()
 
 # --------------------------------------------------------------------------
 def main():
