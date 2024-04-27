@@ -28,7 +28,10 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
     return self.videos.get_video_dict()
 
   def video_checkbox_action(self,action,yid,checked):
-    self.videos.checkbox_action(action,yid,checked)
+    return self.videos.checkbox_action(action,yid,checked)
+
+  def video_monitor_action(self,yid,value):
+    return self.videos.set_monitor(yid,value)
 
   def get_newest_thread_of_interest(self):
     yth=self.commentthreadlist.get_newest_thread_of_interest()
@@ -54,6 +57,7 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def set_ignore_from_comment(self,cid):
     if (not cid): return
     self.commentthreadlist.set_ignore_from_comment(cid)
+    return {}
 
 
 # --------------------------------------------------------------------------
