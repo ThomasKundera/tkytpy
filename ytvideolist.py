@@ -36,3 +36,11 @@ class YTVideoList:
     if (action == "suspended"):
       v.suspended=checked
       dbsession.commit()
+
+  def set_monitor(self,yid,value):
+    if (value<0) or (value>10): return
+    dbsession=SqlSingleton().mksession()
+    v=get_dbobject_if_exists(YTVideo,yid,dbsession)
+    if not v: return
+    v.monitor=value
+    dbsession.commit()
