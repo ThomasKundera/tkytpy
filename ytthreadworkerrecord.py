@@ -57,7 +57,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     self.nextcmtpagetoken=None
 
   def sql_task_threaded(self,dbsession,youtube):
-    logging.debug("YTThreadWorkerRecord.populate(): START")
+    logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START")
     # FIXME: can't handle video without any comment.
     if (self.firstthreadcid):
       # Check if there is anything new:
@@ -70,6 +70,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       tid=thread['id']
       if (tid == self.firstthreadcid):
         # Nothing changed, return
+        logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Nothing changed")
         self.lastwork=datetime.datetime.now()
         return
       # So it changed...
@@ -99,10 +100,11 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           self.firstthreadcidcandidate=tid
         c=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
         if (c): # That cid exists!
-          logging.debug("YTThreadWorkerRecord.populate(): Merged with old: "
+          logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Merged with old: "
             +str(cid)+" "+str(self.yid))
           self.firstthreadcid=self.firstthreadcidcandidate
-          break
+          self.lastwork=datetime.datetime.now()
+          return
         # Still new stuff...
         c=get_dbobject(YTCommentRecord,cid,dbsession)
         c.fill_from_json(tlc,False)
