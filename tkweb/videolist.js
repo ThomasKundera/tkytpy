@@ -1,3 +1,54 @@
+function create_a(href,textcontent) {
+  const a=document.createElement("a");
+  a.setAttribute('href',href);
+  a.textContent =textcontent;
+  return a;
+}
+
+function populate_video(div,ytv) {
+  const mdv = document.createElement("div");
+  cls='video';
+  ytv.valid     = (ytv.valid.toLowerCase()     === "true");
+  ytv.suspended = (ytv.suspended.toLowerCase() === "true");
+  if (!ytv.valid) {
+    cls=cls+" vnotvalid";
+  } else if (ytv.suspended) {
+    cls=cls+" vsuspended";
+  }
+
+  mdv.setAttribute('class',cls);
+
+  const mi=document.createElement("img");
+  mi.setAttribute('src',ytv.thumb_url_s);
+  mi.setAttribute('width',"120");
+  mi.setAttribute('height',"90");
+
+  const a1 = create_a("https://www.youtube.com/watch?v="+ytv.yid,"");
+  a1.appendChild(mi);
+  mdv.appendChild(a1);
+
+  mdv.appendChild(create_a("/video.html?yid="+ytv.yid,ytv.title));
+
+  const mdc = document.createElement("div");
+  mdc.setAttribute('class','vcontrol');
+
+  const mip = document.createElement("input");
+  mip.setAttribute('type','checkbox');
+  mip.setAttribute('name','suspended');
+  mip.setAttribute('id',ytv.yid);
+  mip.checked=ytv.suspended
+  mdc.appendChild(mip);
+
+  const lbl = document.createElement("label");
+  lbl.setAttribute('for',ytv.yid);
+  if (mip.checked) lbl.textContent="Unsuspend";
+  else lbl.textContent="Suspend";
+  mdc.appendChild(lbl);
+
+  mdv.appendChild(mdc)
+  div.appendChild(mdv)
+}
+
 function populateVideoList(obj) {
   const videodiv = document.querySelector("#videodiv");
   videodiv.innerHTML = "";
@@ -6,50 +57,7 @@ function populateVideoList(obj) {
   const mvldiv = document.createElement("div");
   mvldiv.setAttribute('class','videolist');
   for (const ytv of ytvlist) {
-    const mdv = document.createElement("div");
-    cls='video';
-    ytv.valid     = (ytv.valid.toLowerCase()     === "true");
-    ytv.suspended = (ytv.suspended.toLowerCase() === "true");
-    if (!ytv.valid) {
-      cls=cls+" vnotvalid";
-    } else if (ytv.suspended) {
-      cls=cls+" vsuspended";
-    }
-
-    mdv.setAttribute('class',cls);
-
-    const ma1 = document.createElement("a");
-    ma1.setAttribute('href',"https://www.youtube.com/watch?v="+ytv.yid)
-    const mi=document.createElement("img");
-    mi.setAttribute('src',ytv.thumb_url_s);
-    mi.setAttribute('width',"120");
-    mi.setAttribute('height',"90");
-    ma1.appendChild(mi);
-    mdv.appendChild(ma1);
-
-    const ma2 = document.createElement("a");
-    ma2.textContent = ytv.title;
-    ma2.setAttribute('href',"/video.html?yid="+ytv.yid)
-    mdv.appendChild(ma2)
-
-    const mdc = document.createElement("div");
-    mdc.setAttribute('class','vcontrol');
-
-    const mip = document.createElement("input");
-    mip.setAttribute('type','checkbox');
-    mip.setAttribute('name','suspended');
-    mip.setAttribute('id',ytv.yid);
-    mip.checked=ytv.suspended
-    mdc.appendChild(mip);
-
-    const lbl = document.createElement("label");
-    lbl.setAttribute('for',ytv.yid);
-    if (mip.checked) lbl.textContent="Unsuspend";
-    else lbl.textContent="Suspend";
-    mdc.appendChild(lbl);
-
-    mdv.appendChild(mdc)
-    mvldiv.appendChild(mdv)
+    populate_video(mvldiv,ytv)
   }
   videodiv.appendChild(mvldiv);
 }
