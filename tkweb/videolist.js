@@ -5,6 +5,15 @@ function create_a(href,textcontent) {
   return a;
 }
 
+function create_input(type,name,id) {
+  input=document.createElement("input");
+  input.setAttribute('type'   , type         );
+  input.setAttribute('name'   , name         );
+  input.setAttribute('id'     , name+"_"+id  );
+  input.setAttribute('data-id', id           );
+  return input;
+}
+
 function populate_video(div,ytv) {
   const mdv = document.createElement("div");
   cls='video';
@@ -32,21 +41,27 @@ function populate_video(div,ytv) {
   const mdc = document.createElement("div");
   mdc.setAttribute('class','vcontrol');
 
-  const mip = document.createElement("input");
-  mip.setAttribute('type','checkbox');
-  mip.setAttribute('name','suspended');
-  mip.setAttribute('id',ytv.yid);
+  const mip = create_input('checkbox','suspended',ytv.yid)
   mip.checked=ytv.suspended
   mdc.appendChild(mip);
 
   const lbl = document.createElement("label");
-  lbl.setAttribute('for',ytv.yid);
+  lbl.setAttribute('for',mip.getAttribute('id'));
   if (mip.checked) lbl.textContent="Unsuspend";
   else lbl.textContent="Suspend";
   mdc.appendChild(lbl);
 
-  mdv.appendChild(mdc)
-  div.appendChild(mdv)
+  const mip2 = create_input('range','monitor',ytv.yid);
+  mip2.setAttribute('min',0);
+  mip2.setAttribute('max',10);
+  mip2.setAttribute('value',parseInt(ytv.monitor));
+  mdc.appendChild(mip2);
+  const lbl2 = document.createElement("label");
+  lbl2.setAttribute('for',mip2.getAttribute('id'));
+  mdc.appendChild(lbl2);
+
+  mdv.appendChild(mdc);
+  div.appendChild(mdv);
 }
 
 function populateVideoList(obj) {
@@ -69,13 +84,19 @@ async function manage_buttons(loc) {
   button=loc.target;
   try {
     action=button.getAttribute("name");
-    yid=button.getAttribute("id");
-    checked=button.checked;
+    yid=button.getAttribute("data-id");
     request={
-      "command":"video_checkbox_action",
-      "action":action,
-      "yid": yid,
-      "checked": checked
+        "command":"video_action",
+        "action":action,
+        "yid": yid
+    };
+    if (action == 'suspended') {
+      checked=button.checked;
+      request.checked=checked
+    };
+    if (action == 'monitor') {
+      value=button.value;
+      request.value=value;
     };
     const response = await fetch("http://localhost:8000/post", {
       method: 'POST',
@@ -93,7 +114,7 @@ async function manage_buttons(loc) {
 
 const area = document.querySelector("#videodiv");
 // Take over form submission
-area.addEventListener("click", function(loc) {
+area.addEventListener("change", function(loc) {
   manage_buttons(loc);
 });
 
