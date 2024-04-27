@@ -69,7 +69,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       thread=result['items'][0]
       tid=thread['id']
       if (tid == self.firstthreadcid):
-        # NOthing changed, return
+        # Nothing changed, return
+        self.lastwork=datetime.datetime.now()
         return
       # So it changed...
       self.firstthreadcid=None
