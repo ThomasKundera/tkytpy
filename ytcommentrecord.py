@@ -35,7 +35,8 @@ class YTCommentRecord(SqlRecord,Base):
 
     self.yid =snippet['videoId']
     self.text=snippet['textDisplay'][:10000] # FIXME
-    print("TEXT LENGTH: "+str(len(self.text)))
+    #print("TEXT LENGTH: "+str(len(self.text)))
+    #print(self.text)
     self.author=snippet['authorDisplayName']
 
     if ('parentId' in snippet):
@@ -56,6 +57,11 @@ class YTCommentRecord(SqlRecord,Base):
 # --------------------------------------------------------------------------
 def main():
   Base.metadata.create_all()
+  dbsession=SqlSingleton().mksession()
+  #res=dbsession.query(YTCommentRecord.yid, #func.count(YTCommentRecord.yid)).group_by(YTCommentRecord.yid).all()
+  #print(res)
+  return
+
   ycr=get_dbobject(YTCommentRecord,"UgzMZr8oiZeLFE-IGqB4AaABAg")
 
   jsc={'kind': 'youtube#comment',
