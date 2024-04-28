@@ -45,11 +45,14 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
       return yth.to_dict()
     return {}
 
-  def get_thread(self,cid):
-    yth=self.commentthreadlist.get_thread(cid)
+  def get_thread(self,tid):
+    yth=self.commentthreadlist.get_thread(tid)
     if (yth):
       return yth.to_dict()
     return {}
+
+  def force_refresh_thread(self,tid):
+    self.commentthreadlist.force_refresh_thread(tid)
 
   def get_unseen_new_threads(self):
     return {}
