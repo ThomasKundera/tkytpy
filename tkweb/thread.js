@@ -32,10 +32,12 @@ function populate_comment(div,cmt) {
   div.appendChild(cdv);
 }
 
-function pupulate_top_buttons(div,tlc) {
-  const cdv = document.createElement("div");
-  cdv.setAttribute('class','threadtopbuttondiv');
-
+function populate_top_buttons(div,tlc) {
+  const tbd = document.createElement("div");
+  const mip = create_input('button','update',tlc.cid)
+  mip.setAttribute('value',"Update Thread");
+  tbd.appendChild(mip);
+  div.append(tbd);
 }
 
 
@@ -44,9 +46,9 @@ function populate_thread(obj) {
   thread_div.innerHTML = "";
   const tlc = obj.tlc;
 
-  pupulate_top_buttons(thread_div,tlc);
-  populate_comment(thread_div,tlc);
+  populate_top_buttons(thread_div,tlc);
 
+  populate_comment(thread_div,tlc);
   for (const cmt of obj.clist) {
     populate_comment(thread_div,cmt);
   }
@@ -74,12 +76,17 @@ async function update_thread(tid) {
 }
 
 async function manage_buttons(loc) {
-  if (!(loc.target && loc.target.nodeName == "BUTTON")) {
+  if (!(loc.target && (
+    loc.target.nodeName == "BUTTON" || loc.target.nodeName == "INPUT"))) {
     return;
   }
   try {
-    request={"command":"set_ignore_from_comment",
-      "cid": loc.target.getAttribute("value")};
+    if (loc.target.nodeName == "BUTTON")
+      request={"command":"set_ignore_from_comment",
+        "cid": loc.target.getAttribute("value")};
+    else if (loc.target.nodeName == "INPUT")
+      request={"command":"force_refresh_thread",
+        "tid": loc.target.getAttribute("data-id")};
     const response = await fetch("http://localhost:8000/post", {
       method: 'POST',
       headers: {
