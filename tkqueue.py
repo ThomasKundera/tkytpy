@@ -81,6 +81,7 @@ class QueueWorkUniq(QueueWork):
       logging.debug("Task "+str(item)+" already in queue"
                     +" about "+str(self.q.qsize())+" elements remaining"+
                     str(self.taskdict))
+      # FIXME: Updating priority in case the newer has higher priority
       if (item.semaphore):
         item.semaphore.release()
       return False
