@@ -4,6 +4,7 @@ import json
 import sqlalchemy
 from sqlalchemy.orm import Session
 
+from ytqueue         import YtQueue, YtTask
 from sqlrecord       import SqlRecord
 from ytcommentrecord import YTCommentRecord
 from ytauthorrecord  import YTAuthorRecord
@@ -43,6 +44,15 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       dbsession.commit()
 
 
+
+  def call_sql_task_threaded(self,priority=0,semaphore=None,options=None):
+    logging.debug(type(self).__name__+".call_sql_task_threaded(): START")
+    task=YtTask('populate: '+type(self).__name__
+                +" - "+str(self.get_id()),type(self),self.get_id(),priority,semaphore,options)
+    YtQueue().add(task)
+    logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
+
+
   def get_priority(self):
     #logging.debug(type(self).__name__+".get_priority(): START")
     # FIXME: refreshing priority value is also complex
@@ -64,10 +74,35 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     self.done            =False
     self.interest_level  =0
     self.lastcompute     =None
-    self.etag            =None
-    self.nextcmtpagetoken=None
 
-  def sql_task_one_chunck(self,dbsession,youtube):
+
+  def process_result(self,dbsession,youtube,result,force):
+    for comment in result['items']:
+        cid=comment['id']
+        o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
+        if ((not force) and o):
+            logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old")
+            self.done=True
+            self.lastwork=datetime.datetime.now()
+            return
+        c=get_dbobject(YTCommentRecord,cid,dbsession)
+        # yid is not in the subcomment (only in topcomment)
+        # adding it by hand
+        comment['snippet']['videoId']=self.yid
+        c.fill_from_json(comment,False)
+        name=comment['snippet']['authorDisplayName']
+        a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
+        if not a:
+          a=get_dbobject(YTAuthorRecord,name,dbsession)
+        a.fill_from_json(comment)
+
+    if ('nextPageToken' in result):
+      self.nexttreadpagetoken=result['nextPageToken']
+    else:
+      self.done=True
+    self.lastwork=datetime.datetime.now()
+
+  def sql_task_one_chunck(self,dbsession,youtube,force):
     logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): START")
     if (not self.nextcmtpagetoken):
           request=youtube.comments().list(
@@ -79,36 +114,13 @@ class YTCommentWorkerRecord(SqlRecord,Base):
         part='snippet',
         pageToken=self.nexttreadpagetoken,
         maxResults=100)
-    result=request.execute()
-    for comment in result['items']:
-      cid=comment['id']
-      o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
-      if (o):
-          logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old")
-          self.done=True
-          self.lastwork=datetime.datetime.now()
-          return
-      c=get_dbobject(YTCommentRecord,cid,dbsession)
-      # yid is not in the subcomment (only in topcomment)
-      # adding it by hand
-      comment['snippet']['videoId']=self.yid
-      c.fill_from_json(comment,False)
-      name=comment['snippet']['authorDisplayName']
-      a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
-      if not a:
-        a=get_dbobject(YTAuthorRecord,name,dbsession)
-      a.fill_from_json(comment)
-
-    if ('nextPageToken' in result):
-      self.nexttreadpagetoken=result['nextPageToken']
-    else:
-      self.done=True
-    self.lastwork=datetime.datetime.now()
+    result=request.execute(force)
+    self.process_result(dbsession,youtube,result,force)
     logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): END")
 
 
-  def sql_task_threaded(self,dbsession,youtube):
-    logging.debug("YTCommentWorkerRecordsql_task_threaded.(): START")
+  def sql_task_threaded(self,dbsession,youtube,force=False):
+    logging.debug("YTCommentWorkerRecordsql_task_threaded.("+str(force)+"(: START")
     if (self.done):
       request=youtube.comments().list(
             part='snippet',
@@ -118,11 +130,12 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       if (len(result['items'])):
         cid=result['items'][0]['id']
         o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
-        if (o):
+        if ((not force) and o):
           logging.debug("YTCommentWorkerRecord.sql_task_threaded(): Nothing changed")
           self.lastwork=datetime.datetime.now()
           return
         self.done=False
+        self.process_result(dbsession,youtube,result,force)
       else:
         logging.debug("YTCommentWorkerRecord.sql_task_threaded(): No item")
         self.lastwork=datetime.datetime.now()
@@ -132,7 +145,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       v+=1
       if v>10: # Max nb of comments is 500, so 5 iterations.
         raise  # Should not happens
-      self.sql_task_one_chunck(dbsession,youtube)
+      self.sql_task_one_chunck(dbsession,youtube,force)
     logging.debug("YTCommentWorkerRecord.sql_task_threaded: END")
 
 def import_from_file(dbsession):
