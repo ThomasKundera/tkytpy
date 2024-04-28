@@ -176,6 +176,13 @@ class YTCommentThreadList():
     t=YTCommentThread(tid)
     return t
 
+  def force_refresh_thread(self,tid):
+    t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
+    if t:
+      t.call_sql_task_threaded(0) # FIXME FIXME FIXME: semaphore!
+
+
+
   def set_ignore_from_comment(self,cid):
     cmt=get_dbobject_if_exists(YTCommentRecord,cid,self.dbsession)
     if (cmt):
