@@ -62,6 +62,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.get_newest_thread_of_interest()
     if cmd == 'get_thread':
       return self.get_thread(js['tid'])
+    if cmd == 'force_refresh_thread':
+      return self.force_refresh_thread(js['tid'])
     if cmd == 'set_ignore_from_comment':
       return self.set_ignore_from_comment(js['cid'])
 
@@ -92,6 +94,9 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
 
   def get_thread(self,tid):
     return self.tkyt.get_thread(tid)
+
+  def force_refresh_thread(self,tid):
+    return self.tkyt.force_refresh_thread(tid)
 
   def set_ignore_from_comment(self,cid):
     return self.tkyt.set_ignore_from_comment(cid)
