@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 import datetime
+from sqlalchemy.sql import func
 import sqlalchemy
 
 from sqlalchemy import or_, and_
@@ -179,8 +180,23 @@ class YTCommentThreadList():
   def force_refresh_thread(self,tid):
     t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
     if t:
-      t.call_sql_task_threaded(0) # FIXME FIXME FIXME: semaphore!
+      t.call_sql_task_threaded(0,options=True) # This should be safe, after looking.
+      # Only annoying case is if exact same task is queued, it will
+      # be discarded even if the other one has lower priority.
+      yct=YTCommentThread(tid,self.dbsession)
+      # FIXME time.sleep(10) # This to have the thread updated.
+      self.dbsession.merge(t) # FIXME: I have to better understand
+      yct.set_interest()
+      # A commit would be needed after the command ran.
+      # A callback would be nice
 
+
+  def get_commentcount_per_video(self):
+    res=self.dbsession.query(YTCommentRecord.yid, func.count(YTCommentRecord.yid)).group_by(YTCommentRecord.yid).all()
+    d={}
+    for v in res:
+      d[v[0]]=v[1]
+    return d
 
 
   def set_ignore_from_comment(self,cid):
@@ -191,7 +207,6 @@ class YTCommentThreadList():
         tid=cmt.cid
       tcwr=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
       tcwr.ignore_before=cmt.updated
-      self.dbsession.commit()
       yct=YTCommentThread(tid,self.dbsession)
       yct.set_interest()
 
@@ -227,11 +242,13 @@ class TestYTCommentThread(unittest.TestCase):
 
 
 def simple_test():
-  dbsession=SqlSingleton().mksession()
-  ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
-  print(ytct.compute_interest())
-  ytct=YTCommentThread("UgjWCKGV7tqcM3gCoAEC",dbsession)
-  ytct.set_interest()
+  #dbsession=SqlSingleton().mksession()
+  #ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
+  #print(ytct.compute_interest())
+  #ytct=YTCommentThread("UgjWCKGV7tqcM3gCoAEC",dbsession)
+  #ytct.set_interest()
+  ytl=YTCommentThreadList()
+  ytl.force_refresh_thread("Ugz84TKRQZboOin1LXJ4AaABAg")
 
 # --------------------------------------------------------------------------
 def main():
