@@ -20,11 +20,10 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTThreadWorkerRecord(SqlRecord,Base):
-  __tablename__ = 'ytthreadworkers0_6'
+  __tablename__ = 'ytthreadworkers0_5'
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
   firstthreadcid           = sqlalchemy.Column(sqlalchemy.Unicode(50))
-  ftcdate                  = sqlalchemy.Column(sqlalchemy.DateTime)
   firstthreadcidcandidate  = sqlalchemy.Column(sqlalchemy.Unicode(50))
   nexttreadpagetoken       = sqlalchemy.Column(sqlalchemy.Unicode(200))
 
@@ -58,13 +57,35 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     self.nexttreadpagetoken=None
     self.nextcmtpagetoken=None
 
-  def reorder_threads(self,threads):
-    """As YT is putting pinned commentss top, it breaks
-    the algo. Lets reorder by date.
-    """
-    threads.sort(
-      key=lambda x: datetime.datetime.strptime(x['snippet']['topLevelComment']['snippet']['updatedAt'],"%Y-%m-%dT%H:%M:%SZ"), reverse=True)
-    return threads
+
+  def get_tlc_date_tid(self,thread):
+    date=datetime.datetime.strptime(
+      thread['snippet']['topLevelComment']['snippet']['updatedAt'],"%Y-%m-%dT%H:%M:%SZ")
+    tid=thread['id']
+    return (date,tid)
+
+  def manage_first_request(self,youtube):
+    request=youtube.commentThreads().list(
+          part='id,snippet',
+          videoId=self.yid,
+          maxResults=100)
+    result=request.execute(True)
+
+    if (len(result['items']) == 0):
+      raise # Should never occurs
+    pintid=None
+    (date0,tid0)=self.get_tlc_date_tid(result['items'][0])
+    if (len(result['items']) == 1):
+      tid=tid0
+    else:
+      (date1,tid1)=self.get_tlc_date_tid(result['items'][1])
+      if date0<date1:
+        tid=tid0
+      else:
+        tid=tid1
+        pintid=tid0,
+
+    return (tid,pintid,result)
 
 
   def sql_task_threaded(self,dbsession,youtube):
@@ -72,50 +93,36 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     # we'll have to check
     logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START")
     # FIXME: can't handle video without any comment.
-    if (self.firstthreadcid):
-      # Check if there is anything new:
-      # FIXME: Fckd API put pinned comments top.
-      request=youtube.commentThreads().list(
-          part='id,snippet',
-          videoId=self.yid,
-          maxResults=100)
-      result=request.execute(True)
-      result['items']=self.reorder_threads(result['items'])
-      thread=result['items'][0]
-      tid=thread['id']
+    result=None
+    pintid=None
+    if (self.firstthreadcid or (not self.nexttreadpagetoken)):
+      # Rework or first try: Check if there is anything new:
+      (tid,pintid,result)=self.manage_first_request(youtube)
+
       if (tid == self.firstthreadcid):
         # Nothing changed, return
         logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Nothing changed")
         self.lastwork=datetime.datetime.now()
         return
       # So it changed...
+      self.firstthreadcidcandidate=tid
       self.firstthreadcid=None
-      self.firstthreadcidcandidate=None
       self.nexttreadpagetoken=None
 
-    if not (self.firstthreadcid):
-      if (not self.nexttreadpagetoken):
-        request=youtube.commentThreads().list(
-          part='id,snippet',
-          videoId=self.yid,
-          maxResults=100)
-      else:
-        request=youtube.commentThreads().list(
-          part='id,snippet',
-          videoId=self.yid,
-          pageToken=self.nexttreadpagetoken,
-          maxResults=100)
+    if (not result):
+      request=youtube.commentThreads().list(
+        part='id,snippet',
+        videoId=self.yid,
+        pageToken=self.nexttreadpagetoken,
+        maxResults=100)
       result=request.execute()
-      if (not self.nexttreadpagetoken):
-        # Again reordering
-        result['items']=self.reorder_threads(result['items'])
-      for thread in result['items']:
-        tid=thread['id']
-        etag=thread['etag']
-        tlc=thread['snippet']['topLevelComment']
-        cid=tlc['id'] # Is same at tid, actually
-        if (not self.firstthreadcidcandidate):
-          self.firstthreadcidcandidate=tid
+
+    for thread in result['items']:
+      tid=thread['id']
+      etag=thread['etag']
+      tlc=thread['snippet']['topLevelComment']
+      cid=tlc['id'] # Is same at tid, actually
+      if ((pintid) and (cid !=pintid)):
         c=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
         if (c): # That cid exists!
           logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Merged with old: "
@@ -123,24 +130,23 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           self.firstthreadcid=self.firstthreadcidcandidate
           self.lastwork=datetime.datetime.now()
           return
-        # Still new stuff...
-        c=get_dbobject(YTCommentRecord,cid,dbsession)
-        c.fill_from_json(tlc,False)
-        c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
-        c.set_yid_etag(self.yid,etag,False)
+      # Still new stuff...
+      c=get_dbobject(YTCommentRecord,cid,dbsession)
+      c.fill_from_json(tlc,False)
+      c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
+      c.set_yid_etag(self.yid,etag,False)
 
-        name=tlc['snippet']['authorDisplayName']
-        a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
-        if not a:
-          a=get_dbobject(YTAuthorRecord,name,dbsession)
-        a.fill_from_json(tlc)
+      name=tlc['snippet']['authorDisplayName']
+      a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
+      if not a:
+        a=get_dbobject(YTAuthorRecord,name,dbsession)
+      a.fill_from_json(tlc)
 
-      if ('nextPageToken' in result):
-        self.nexttreadpagetoken=result['nextPageToken']
-      else:
-        self.firstthreadcid=self.firstthreadcidcandidate
+    if ('nextPageToken' in result):
+      self.nexttreadpagetoken=result['nextPageToken']
     else:
-      time.sleep(1) # FIXME
+      self.firstthreadcid=self.firstthreadcidcandidate
+
     self.lastwork=datetime.datetime.now()
     logging.debug("YTThreadWorkerRecord.populate(): END")
 
