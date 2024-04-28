@@ -13,3 +13,15 @@ function create_input(type,name,id) {
   input.setAttribute('data-id', id           );
   return input;
 }
+
+function create_p(textcontent) {
+  const p=document.createElement("p");
+  p.textContent =textcontent;
+  return p;
+}
+
+function getColor(value){
+    //value from 0 to 1
+    var hue=(value*120).toString(10); //hue=((1-value)*120).toString(10);
+    return ["hsl(",hue,",100%,50%)"].join("");
+}

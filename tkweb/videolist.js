@@ -26,7 +26,6 @@ function populate_video(div,ytv) {
   }
 
   mdv.setAttribute('class',cls);
-
   const mi=document.createElement("img");
   mi.setAttribute('src',ytv.thumb_url_s);
   mi.setAttribute('width',"120");
@@ -35,8 +34,15 @@ function populate_video(div,ytv) {
   const a1 = create_a("https://www.youtube.com/watch?v="+ytv.yid,"");
   a1.appendChild(mi);
   mdv.appendChild(a1);
-
   mdv.appendChild(create_a("/video.html?yid="+ytv.yid,ytv.title));
+
+  const mds = document.createElement("div");
+  const s="Number of comments: "
+    +ytv.recordedcommentcount+"/"+ytv.commentcount;
+  mds.appendChild(create_p(s));
+  mds.setAttribute('style','background-color: '+getColor(ytv.commentcount/(ytv.recordedcommentcount+1.)));
+  mdv.appendChild(mds);
+  //mdv.appendChild(mds);
 
   const mdc = document.createElement("div");
   mdc.setAttribute('class','vcontrol');
