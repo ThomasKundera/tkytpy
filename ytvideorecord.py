@@ -45,6 +45,7 @@ class YTVideoRecord(SqlRecord,Base):
     return valid_url(self.url)
 
   def get_priority(self):
+    # FIXME: suppress this and go for the new spinner
     # Lower the more prioritized, number should roughlt reflects
     # time (in second) before next update would be nice.
     # Refresh priority should depends heavily on interractive accesses
