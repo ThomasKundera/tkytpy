@@ -32,15 +32,23 @@ function populate_comment(div,cmt) {
   div.appendChild(cdv);
 }
 
+function pupulate_top_buttons(div,tlc) {
+  const cdv = document.createElement("div");
+  cdv.setAttribute('class','threadtopbuttondiv');
+
+}
+
+
 function populate_thread(obj) {
   const thread_div = document.querySelector("#threaddiv");
   thread_div.innerHTML = "";
   const tlc = obj.tlc;
 
-  populate_comment(thread_div,tlc)
+  pupulate_top_buttons(thread_div,tlc);
+  populate_comment(thread_div,tlc);
 
   for (const cmt of obj.clist) {
-    populate_comment(thread_div,cmt)
+    populate_comment(thread_div,cmt);
   }
 }
 
