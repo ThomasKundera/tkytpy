@@ -13,9 +13,16 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # FIXME: should the design here not mix SQL/YT and only care about
 # fetching the data?
 class YtTask(SqlTaskUniq):
+  def __init__(self,tid,cls,oid,priority=0,semaphore=None ,options=None):
+    self.options=options
+    super().__init__(tid,cls,oid,priority,semaphore)
+
   def do_run(self,youtube):
     logging.debug(type(self).__name__+".do_run(): START")
-    self.o.sql_task_threaded(self.dbsession,youtube)
+    if (self.options):
+      self.o.sql_task_threaded(self.dbsession,youtube,self.options)
+    else:
+      self.o.sql_task_threaded(self.dbsession,youtube)
 
   def run(self,youtube):
     logging.debug(type(self).__name__+".run(): START")
