@@ -25,7 +25,11 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
       self.videos.add_from_yid(yid)
 
   def get_video_list(self):
-    return self.videos.get_video_dict()
+    vl=self.videos.get_video_dict()
+    ccount=self.commentthreadlist.get_commentcount_per_video()
+    for v in vl['ytvlist']:
+      v['recordedcommentcount']=ccount[v['yid']]
+    return vl
 
   def video_checkbox_action(self,action,yid,checked):
     return self.videos.checkbox_action(action,yid,checked)
