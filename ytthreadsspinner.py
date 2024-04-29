@@ -52,13 +52,12 @@ class YTThreadsSpinner(YTSpinner):
              YTVideoRecord.monitor>0)
         ).order_by(
           case(
-            (YTThreadWorkerRecord.lastwork == None,1000./YTVideoRecord.monitor),
+            (YTThreadWorkerRecord.lastwork == None,100./YTVideoRecord.monitor),  # Easy
           else_=(
             case(
-              (and_(
-              YTThreadWorkerRecord.firstthreadcid != None,
-              func.unix_timestamp(YTThreadWorkerRecord.lastwork)<300),11*1000./YTVideoRecord.monitor),
-              else_=1000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor)
+              (YTThreadWorkerRecord.nexttreadpagetoken == None, # Then it's a redo
+                    10000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor), # 100 times harder than easy
+              else_=1000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor) # 10 times harder than easy
               )
           )).limit(1)
     for o in ycwr:
