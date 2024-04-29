@@ -2,6 +2,7 @@ div.video {
     border: 3px solid;
     border-color: #FF00AA;
     padding: 5px;
+    height: 100px;
 }
 
 div.vnotvalid {
@@ -16,6 +17,10 @@ div.vsuspended {
 
 div.vcontrol {
     float: right;
+}
+
+div.vmignature {
+    float: left;
 }
 
 div.threaddiv {

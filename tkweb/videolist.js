@@ -26,25 +26,20 @@ function populate_video(div,ytv) {
   }
 
   mdv.setAttribute('class',cls);
+
+  const mdi = document.createElement("div");
+  mdi.setAttribute('class',"vmignature");
+
   const mi=document.createElement("img");
   mi.setAttribute('src',ytv.thumb_url_s);
   mi.setAttribute('width',"120");
   mi.setAttribute('height',"90");
-
   const a1 = create_a("https://www.youtube.com/watch?v="+ytv.yid,"");
   a1.appendChild(mi);
-  mdv.appendChild(a1);
-  mdv.appendChild(create_a("/video.html?yid="+ytv.yid,ytv.title));
+  mdi.appendChild(a1);
+  mdv.appendChild(mdi);
 
-  const mds = document.createElement("div");
-  const s="Number of comments: "
-    +ytv.recordedcommentcount+"/"+ytv.commentcount;
-  mds.appendChild(create_p(s));
-  mds.setAttribute('style','background-color: '+getColor(ytv.commentcount/(ytv.recordedcommentcount+1.)));
-  mdv.appendChild(mds);
-  //mdv.appendChild(mds);
-
-  const mdc = document.createElement("div");
+    const mdc = document.createElement("div");
   mdc.setAttribute('class','vcontrol');
 
   const mip = create_input('checkbox','suspended',ytv.yid)
@@ -67,6 +62,19 @@ function populate_video(div,ytv) {
   mdc.appendChild(lbl2);
 
   mdv.appendChild(mdc);
+
+
+  const mdm = document.createElement("div");
+  mdm.appendChild(create_a("/video.html?yid="+ytv.yid,ytv.title));
+  const mds = document.createElement("div");
+  const s="Number of comments: "
+    +ytv.recordedcommentcount+"/"+ytv.commentcount;
+  mds.appendChild(create_p(s));
+  mds.setAttribute('style','width: 50%; background-color: '+getColor((10.*ytv.recordedcommentcount)/(ytv.commentcount+1.))); //  FIXME
+  mdm.appendChild(mds);
+  mdv.appendChild(mdm);
+
+
   div.appendChild(mdv);
 }
 
@@ -74,6 +82,13 @@ function populateVideoList(obj) {
   const videodiv = document.querySelector("#videodiv");
   videodiv.innerHTML = "";
   const ytvlist = obj.ytvlist;
+
+  for (var i in Array.from(Array(10))) {
+    const span=document.createElement("span");
+    span.textContent=i
+    span.setAttribute('style','background-color: '+getColor(i/10.));
+    videodiv.appendChild(span);
+  };
 
   const mvldiv = document.createElement("div");
   mvldiv.setAttribute('class','videolist');
