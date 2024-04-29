@@ -79,7 +79,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       tid=tid0
     else:
       (date1,tid1)=self.get_tlc_date_tid(result['items'][1])
-      if date0<date1:
+      if date0>date1:
         tid=tid0
       else:
         tid=tid1
@@ -95,16 +95,22 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     # FIXME: can't handle video without any comment.
     result=None
     pintid=None
-    if (self.firstthreadcid or (not self.nexttreadpagetoken)):
-      # Rework or first try: Check if there is anything new:
+    if (not self.nexttreadpagetoken):
+      # first try or rework
       (tid,pintid,result)=self.manage_first_request(youtube)
-
-      if (tid == self.firstthreadcid):
-        # Nothing changed, return
-        logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Nothing changed")
-        self.lastwork=datetime.datetime.now()
-        return
-      # So it changed...
+      print(tid)
+      if (not self.firstthreadcid):
+        # first try
+         logging.debug("YTThreadWorkerRecord.sql_task_threaded(): First scan")
+      else:
+        # Rework: Check if there is anything new:
+        print(self.firstthreadcid)
+        if (tid == self.firstthreadcid):
+          # Nothing changed, return
+          logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Nothing changed")
+          self.lastwork=datetime.datetime.now()
+          return
+      # Reworking
       self.firstthreadcidcandidate=tid
       self.firstthreadcid=None
       self.nexttreadpagetoken=None
@@ -146,6 +152,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       self.nexttreadpagetoken=result['nextPageToken']
     else:
       self.firstthreadcid=self.firstthreadcidcandidate
+      self.nexttreadpagetoken=None
 
     self.lastwork=datetime.datetime.now()
     logging.debug("YTThreadWorkerRecord.populate(): END")
@@ -157,6 +164,12 @@ def main():
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   YtQueue(1)
+  ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'C6hsgRWjf-4',dbsession)
+  ytw.call_sql_task_threaded()
+  YtQueue().join()
+  dbsession.commit()
+  return
+
   vidlist=get_video_ids_from_file('yturls.txt')
   ytwlist=[]
   for yid in vidlist:
