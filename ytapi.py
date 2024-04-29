@@ -91,7 +91,6 @@ class YtApi:
   def wait_a_bit(self):
     now=datetime.datetime.now()
     Δt=now-self.lastrun
-    self.lastrun=now
     st=max(self.wait_time-Δt.total_seconds(),0)
     logging.debug("YtApi.wait_a_bit(): Sleeping "+str(st)+"s")
     time.sleep(st) # This impose less than 10.000 calls per day.
@@ -104,6 +103,7 @@ class YtApi:
       if (answer): return answer
     self.wait_a_bit()
     answer=ytr.execute()
+    self.lastrun=datetime.datetime.now()
     self.cache.set(key,request,answer)
     return answer
 
