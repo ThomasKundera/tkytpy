@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
+"""Independently starts the inteactive part of tkyt.
+"""
+
 from httpserver import HttpServer
 
 class CmdNView:
+  """
+  Manage the webserver
+  """
   def __init__(self,tkyt):
     self.server=HttpServer(tkyt)
 
