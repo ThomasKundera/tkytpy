@@ -248,11 +248,14 @@ def simple_test():
   #ytct=YTCommentThread("UgjWCKGV7tqcM3gCoAEC",dbsession)
   #ytct.set_interest()
   ytl=YTCommentThreadList()
-  ytl.force_refresh_thread("Ugz84TKRQZboOin1LXJ4AaABAg")
+  ytl.force_refresh_thread("UgwfA7srutuIuW5AUdh4AaABAg")
+
 
 # --------------------------------------------------------------------------
 def main():
   simple_test()
+  from ytqueue import YtQueue
+  YtQueue().join()
   return
   unittest.main()
   return
