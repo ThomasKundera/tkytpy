@@ -54,6 +54,14 @@ class YTCommentRecord(SqlRecord,Base):
   def populate_default(self):
     # Wasn't kept in previous version
     self.liked        = None
+
+
+  def __str__(self):
+    s=self.cid
+    s+=" "+self.author
+    s+=" "+str(self.published)
+    return s
+
 # --------------------------------------------------------------------------
 def main():
   Base.metadata.create_all()
