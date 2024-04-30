@@ -25,8 +25,8 @@ class YTAuthorRecord(SqlRecord,Base):
     self.name=name
     super().__init__(dbsession,commit)
 
-  def fill_from_json(self,jscomment,commit=True):
-    if (commit):
+  def fill_from_json(self,jscomment,dbsession,commit=True):
+    if ((not dbsession) and commit):
       dbsession=SqlSingleton().mksession()
     snippet  =jscomment['snippet']
     self.pp =snippet['authorProfileImageUrl']
