@@ -66,7 +66,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
   def manage_first_request(self,youtube):
     request=youtube.commentThreads().list(
-          part='id,snippet',
+          part='id,snippet,replies',
           videoId=self.yid,
           maxResults=100)
     result=request.execute(True)
@@ -117,7 +117,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
     if (not result):
       request=youtube.commentThreads().list(
-        part='id,snippet',
+        part='id,snippet,replies',
         videoId=self.yid,
         pageToken=self.nexttreadpagetoken,
         maxResults=100)
@@ -127,30 +127,37 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       tid=thread['id']
       etag=thread['etag']
       tlc=thread['snippet']['topLevelComment']
-      cid=tlc['id'] # Is same at tid, actually
-      if ((pintid) and (cid !=pintid)):
-        c=get_dbobject_if_exists(YTCommentRecord,cid,dbsession) # FIXME: use comment worker record instead
-        if (c): # That cid exists!
+      #cid=tlc['id'] # Is same at tid, actually
+      if ((pintid) and (tid !=pintid)):
+        ct=get_dbobject_if_exists(YTCommentRecord,tid,dbsession) # FIXME: use comment worker record instead
+        if (ct): # That cid exists!
           logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Merged with old: "
-            +str(cid)+" "+str(self.yid))
+            +str(tid)+" "+str(self.yid))
           self.firstthreadcid=self.firstthreadcidcandidate
           self.lastwork=datetime.datetime.now()
           return
       # Still new stuff...
-      c=get_dbobject(YTCommentRecord,cid,dbsession)
-      c.fill_from_json(tlc,False)
-      c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
-      c.set_yid_etag(self.yid,etag,False)
+      c=get_dbobject(YTCommentRecord,tid,dbsession)
+      c.fill_from_json(tlc,dbsession,False)
+      ct=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
+      ct.set_yid_etag(self.yid,etag,False)
       #print(thread['snippet'])
       replycount=thread['snippet']['totalReplyCount']
       if (replycount == 0): # Useless to run a commentspinner: there is nothing under
-        c.done=True
-        c.lastwork=datetime.datetime.now()
-      name=tlc['snippet']['authorDisplayName']
-      a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
-      if not a:
-        a=get_dbobject(YTAuthorRecord,name,dbsession)
-      a.fill_from_json(tlc)
+        ct.done=True
+        ct.nextcmtpagetoken=None
+        ct.lastwork=datetime.datetime.now()
+      else:
+        replies=thread['replies']
+        comments=replies['comments']
+        if (len(comments)==replycount): # We have them all
+          for jc in comments:
+            cid=jc['id']
+            c=get_dbobject(YTCommentRecord,cid,dbsession)
+            c.fill_from_json(jc,dbsession,False)
+          ct.done=True
+          ct.nextcmtpagetoken=None
+          ct.lastwork=datetime.datetime.now()
 
     if ('nextPageToken' in result):
       self.nexttreadpagetoken=result['nextPageToken']
