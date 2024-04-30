@@ -3,7 +3,8 @@ import datetime
 import json
 import sqlalchemy
 
-from sqlrecord      import SqlRecord
+from sqlrecord       import SqlRecord
+from ytauthorrecord  import YTAuthorRecord
 
 from sqlsingleton   import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
@@ -27,8 +28,8 @@ class YTCommentRecord(SqlRecord,Base):
     self.cid=cid
     super().__init__(dbsession,commit)
 
-  def fill_from_json(self,jscomment,commit=True):
-    if (commit):
+  def fill_from_json(self,jscomment,dbsession=False,commit=True):
+    if (not dbsession):
       dbsession=SqlSingleton().mksession()
     self.cid =jscomment['id']
     snippet  =jscomment['snippet']
@@ -38,6 +39,10 @@ class YTCommentRecord(SqlRecord,Base):
     #print("TEXT LENGTH: "+str(len(self.text)))
     #print(self.text)
     self.author=snippet['authorDisplayName']
+    a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
+    if not a:
+      a=get_dbobject(YTAuthorRecord,name,dbsession)
+      a.fill_from_json(jscomment,dbsession,False)
 
     if ('parentId' in snippet):
       self.parent=snippet['parentId']
