@@ -41,7 +41,7 @@ class YTCommentRecord(SqlRecord,Base):
     self.author=snippet['authorDisplayName']
     a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
     if not a:
-      a=get_dbobject(YTAuthorRecord,name,dbsession)
+      a=get_dbobject(YTAuthorRecord,self.author,dbsession)
       a.fill_from_json(jscomment,dbsession,False)
 
     if ('parentId' in snippet):
