@@ -58,6 +58,7 @@ class YTCommentRecord(SqlRecord,Base):
 
   def __str__(self):
     s=self.cid
+    s+=" "+self.yid
     s+=" "+self.author
     s+=" "+str(self.published)
     return s
