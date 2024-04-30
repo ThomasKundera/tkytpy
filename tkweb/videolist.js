@@ -1,4 +1,4 @@
-function create_a(href,textcontent) {
+function create_a(href,textcontent) { // FIXME
   const a=document.createElement("a");
   a.setAttribute('href',href);
   a.textContent =textcontent;
@@ -39,7 +39,7 @@ function populate_video(div,ytv) {
   mdi.appendChild(a1);
   mdv.appendChild(mdi);
 
-    const mdc = document.createElement("div");
+  const mdc = document.createElement("div");
   mdc.setAttribute('class','vcontrol');
 
   const mip = create_input('checkbox','suspended',ytv.yid)
@@ -66,11 +66,12 @@ function populate_video(div,ytv) {
 
   const mdm = document.createElement("div");
   mdm.appendChild(create_a("/video.html?yid="+ytv.yid,ytv.title));
+  mdm.appendChild(create_p(ytv.yid))
   const mds = document.createElement("div");
   const s="Number of comments: "
     +ytv.recordedcommentcount+"/"+ytv.commentcount;
   mds.appendChild(create_p(s));
-  mds.setAttribute('style','width: 50%; background-color: '+getColor((10.*ytv.recordedcommentcount)/(ytv.commentcount+1.))); //  FIXME
+  mds.setAttribute('style','width: 50%; background-color: '+getColor((parseInt(ytv.recordedcommentcount))/(parseInt(ytv.commentcount)+1.))); //  FIXME
   mdm.appendChild(mds);
   mdv.appendChild(mdm);
 
