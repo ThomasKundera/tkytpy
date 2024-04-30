@@ -55,13 +55,18 @@ class YTThreadsSpinner(YTSpinner):
             (YTThreadWorkerRecord.lastwork == None,100./YTVideoRecord.monitor),  # Easy
           else_=(
             case(
-              (YTThreadWorkerRecord.nexttreadpagetoken == None, # Then it's a redo
+              (YTThreadWorkerRecord.nexttreadpagetoken == None, # It's a redo
                     10000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor), # 100 times harder than easy
               else_=1000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor) # 10 times harder than easy
               )
           )).limit(1)
     for o in ycwr:
-      return (1000,o) # FIXME 1000 is arbirary
+      priority=1000
+      if (not o.nexttreadpagetoken): # It's a redo
+        time.sleep(10) # FIXME crude deprioritisation
+        print("Really trying!!!")
+        priority=10000
+      return (priority,o)
     return None # No matching item found
 
 # --------------------------------------------------------------------------
