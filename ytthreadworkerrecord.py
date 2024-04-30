@@ -91,7 +91,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
   def sql_task_threaded(self,dbsession,youtube):
     # For a single misplaced comment by that fkng ggl API
     # we'll have to check
-    logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START")
+    logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START : "+self.yid)
     # FIXME: can't handle video without any comment.
     result=None
     pintid=None
@@ -129,7 +129,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       tlc=thread['snippet']['topLevelComment']
       cid=tlc['id'] # Is same at tid, actually
       if ((pintid) and (cid !=pintid)):
-        c=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
+        c=get_dbobject_if_exists(YTCommentRecord,cid,dbsession) # FIXME: use comment worker record instead
         if (c): # That cid exists!
           logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Merged with old: "
             +str(cid)+" "+str(self.yid))
@@ -141,7 +141,11 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       c.fill_from_json(tlc,False)
       c=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
       c.set_yid_etag(self.yid,etag,False)
-
+      #print(thread['snippet'])
+      replycount=thread['snippet']['totalReplyCount']
+      if (replycount == 0): # Useless to run a commentspinner: there is nothing under
+        c.done=True
+        c.lastwork=datetime.datetime.now()
       name=tlc['snippet']['authorDisplayName']
       a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
       if not a:
