@@ -89,12 +89,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
         # yid is not in the subcomment (only in topcomment)
         # adding it by hand
         comment['snippet']['videoId']=self.yid
-        c.fill_from_json(comment,False)
-        name=comment['snippet']['authorDisplayName']
-        a=get_dbobject_if_exists(YTAuthorRecord,name,dbsession)
-        if not a:
-          a=get_dbobject(YTAuthorRecord,name,dbsession)
-        a.fill_from_json(comment)
+        c.fill_from_json(comment,dbsession,False)
 
     if ('nextPageToken' in result):
       self.nexttreadpagetoken=result['nextPageToken']
@@ -120,7 +115,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
 
 
   def sql_task_threaded(self,dbsession,youtube,force=False):
-    logging.debug("YTCommentWorkerRecordsql_task_threaded.("+str(force)+"(: START")
+    logging.debug("YTCommentWorkerRecord.sql_task_threaded.("+str(force)+"): START : "+self.yid)
     if (self.done):
       request=youtube.comments().list(
             part='snippet',
