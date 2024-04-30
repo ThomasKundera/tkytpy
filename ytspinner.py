@@ -35,9 +35,8 @@ class YTSpinner:
     t=item[1]
     self.semaphore.acquire()
     self.modified_item=t # Trying to solve the multithread issue
-    # Using priority here needs a careful evaluation.
-    # So, we'll just give everything same for now.
-    t.call_sql_task_threaded(1000,self.semaphore)
+    # Using priority here needs a careful evaluation. But may works now.
+    t.call_sql_task_threaded(priority,self.semaphore)
     logging.debug(type(self).__name__+".call_populate: END")
 
   def get_items_to_process(self):
