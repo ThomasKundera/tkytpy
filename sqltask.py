@@ -12,7 +12,7 @@ class SqlTask(TkTask):
     super().__init__(None,priority,semaphore)
 
   def pre_run(self):
-    logging.debug(type(self).__name__+".pre_run(): START")
+    logging.debug(type(self).__name__+".pre_run(): START ("+str(self)+")")
     # We are now in out new thread
     # lets create a session we will work in
     # and instantiate an object that belongs to it
@@ -21,17 +21,20 @@ class SqlTask(TkTask):
     self.o=get_dbobject_if_exists(self.cls,self.oid,self.dbsession)
 
   def do_run(self):
-    logging.debug(type(self).__name__+".do_run(): START")
+    logging.debug(type(self).__name__+".do_run(): START ("+str(self)+")")
     self.o.sql_task_threaded(self.dbsession)
 
   def post_run(self):
-    logging.debug(type(self).__name__+".post_run(): START")
+    logging.debug(type(self).__name__+".post_run(): START ("+str(self)+")")
     self.dbsession.merge(self.o)
     self. dbsession.commit()
     if (self.semaphore):
+      logging.debug(type(self).__name__
+                    +".post_run(): Semaphore release ("+str(self)+")")
       self.semaphore.release()
 
   def run(self):
+    logging.debug(type(self).__name__+".run(): START ("+str(self)+")")
     self.pref_run()
     self.do_run()
     self.post_run()
@@ -51,7 +54,7 @@ class SqlTaskUniq(SqlTask):
     super().__init__(cls,oid,priority,semaphore)
 
   def __str__(self):
-    return self.tid
+    return self.tid+" ("+str(self.priority)+")"
 
 
 
