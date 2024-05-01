@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from ytspinner            import YTSpinner
 from ytvideorecord        import YTVideoRecord
 
-from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbsession
+from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbobject_if_exists, get_dbsession
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -20,7 +20,7 @@ class YTVideosSpinner(YTSpinner):
     super().do_spin_new()
 
   def get_item_to_process(self):
-    logging.debug(type(self).__name__+"get_item_to_process.(): START")
+    logging.debug(type(self).__name__+".get_item_to_process.(): START")
     now=datetime.datetime.now().timestamp()
 
     # To add a bit of fuziness, YTVideoRecord.monitor is scrambled a bit
@@ -37,7 +37,11 @@ class YTVideosSpinner(YTSpinner):
               )
           ).limit(1)
     for o in yvr:
-      return (1000,o) # FIXME 1000 is arbirary
+      priority=1000
+      if (o.populated): # It's a redo
+        priority=10000
+      #yvpriority=get_dbobject_if_exists(YTVideoRecord,o.yid,self.dbsession)
+      return (priority,o)
     return None # No matching item found
 
 # --------------------------------------------------------------------------
