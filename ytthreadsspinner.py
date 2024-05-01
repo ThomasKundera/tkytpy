@@ -62,7 +62,7 @@ class YTThreadsSpinner(YTSpinner):
           )).limit(1)
     for o in ycwr:
       priority=1000
-      if (not o.nexttreadpagetoken): # It's a redo
+      if (o.lastwork and (not o.nexttreadpagetoken)): # It's a redo
         time.sleep(10) # FIXME crude deprioritisation
         print("Really trying!!!")
         priority=10000
