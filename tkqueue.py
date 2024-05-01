@@ -68,6 +68,8 @@ class QueueWork(metaclass=tksingleton.SingletonMeta):
         item.semaphore.release()
       return False
     self.q.put(item)
+    logging.debug(type(self).__name__+
+                  ".add("+str(item)+"): added ("+str(self.meanpriority)+")")
     return True
 
   def join(self):
@@ -88,7 +90,7 @@ class QueueWorkUniq(QueueWork):
 
   def add(self,item):
     if item.tid in self.taskdict:
-      logging.debug("Task "+str(item)+" already in queue"
+      logging.debug(type(self).__name__+".add("+str(item)+"): already in queue"
                     +" about "+str(self.q.qsize())+" elements remaining"+
                       self.strtaskdict())
       # FIXME: Updating priority in case the newer has higher priority
