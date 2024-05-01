@@ -18,14 +18,14 @@ class YtTask(SqlTaskUniq):
     super().__init__(tid,cls,oid,priority,semaphore)
 
   def do_run(self,youtube):
-    logging.debug(type(self).__name__+".do_run(): START")
+    logging.debug(type(self).__name__+".do_run(): START ("+str(self)+")")
     if (self.options):
       self.o.sql_task_threaded(self.dbsession,youtube,self.options)
     else:
       self.o.sql_task_threaded(self.dbsession,youtube)
 
   def run(self,youtube):
-    logging.debug(type(self).__name__+".run(): START")
+    logging.debug(type(self).__name__+".run(): START ("+str(self)+")")
     self.pre_run()
     self.do_run(youtube)
     self.post_run()
