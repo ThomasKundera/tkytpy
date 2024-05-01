@@ -33,6 +33,8 @@ class YTSpinner:
       self.dbsession.commit()
     priority=item[0]
     t=item[1]
+    logging.debug(type(self).__name__
+                  +".call_populate(): Semaphore request ("+t.get_id()+")")
     self.semaphore.acquire()
     self.modified_item=t # Trying to solve the multithread issue
     # Using priority here needs a careful evaluation. But may works now.
