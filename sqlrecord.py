@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import datetime
 import json
 import sqlalchemy
@@ -44,7 +45,8 @@ class SqlRecord:
     logging.debug(type(self).__name__+".call_sql_task_threaded(): START")
     task=YtTask('populate: '+type(self).__name__
                 +" - "+str(self.get_id()),type(self),self.get_id(),priority,semaphore)
-    YtQueue().add(task)
+    if (not YtQueue().add(task)): # Queuing was refused, likely not high priority
+      time.sleep(30) # So we wait
     logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
 
   def get_priority(self):
