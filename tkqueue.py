@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from random import random
 import threading
 import queue
 import time
@@ -37,12 +38,13 @@ class TkTaskUniq(TkTask):
     super().__init__(task,priority,semaphore)
 
   def __str__(self):
-    return self.tid
+    return self.tid+" ("+str(self.priority)+")"
 
 class QueueWork(metaclass=tksingleton.SingletonMeta):
 
   def __init__(self):
     self.q=queue.PriorityQueue()
+    self.meanpriority=0.
     threading.Thread(target=self.worker, daemon=True).start()
 
   def do_work(self,item):
@@ -58,7 +60,15 @@ class QueueWork(metaclass=tksingleton.SingletonMeta):
       #time.sleep(1)
 
   def add(self,item):
+    self.meanpriority=(4*self.meanpriority+item.priority)/5.
+    if (item.priority>self.meanpriority*(1+random())):
+      logging.debug("QueueWork.worker(): "
+        +str(item)+" too high priority to run ("+str(self.meanpriority)+")")
+      if (item.semaphore):
+        item.semaphore.release()
+      return False
     self.q.put(item)
+    return True
 
   def join(self):
     self.q.join()
@@ -80,25 +90,49 @@ class QueueWorkUniq(QueueWork):
     if item.tid in self.taskdict:
       logging.debug("Task "+str(item)+" already in queue"
                     +" about "+str(self.q.qsize())+" elements remaining"+
-                    str(self.taskdict))
+                      self.strtaskdict())
       # FIXME: Updating priority in case the newer has higher priority
       if (item.semaphore):
         item.semaphore.release()
       return False
-    self.taskdict[item.tid]=item.tid
-    super().add(item)
+    if (not super().add(item)):
+      return False
+    self.taskdict[item.tid]=item
+    return True
+
+  def strtaskdict(self):
+    s=""
+    for v in self.taskdict.values():
+      s+=" "+str(v)
+    return s
 
 
-def test_task():
-  print("Test task")
-  time.sleep(1)
+
+def test_task1():
+  print("Test task1")
+  time.sleep(5)
+
+def test_task2():
+  print("Test task2")
+  time.sleep(5)
+
+def test_task3():
+  print("Test task3")
+  time.sleep(5)
 
 # --------------------------------------------------------------------------
 def main():
-  t1=TkTaskUniq("toto",test_task)
+  t1=TkTaskUniq("toto",test_task1,1000)
+  t2=TkTaskUniq("titi",test_task2,3000)
+  t3=TkTaskUniq("tutu",test_task3,40000)
   q=QueueWorkUniq()
-  q.add(t1)
+  for i in range(10):
+    for t in [t1,t2,t3]:
+      q.add(t)
+      time.sleep(1)
   q.join()
+  q.join()
+
 
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
