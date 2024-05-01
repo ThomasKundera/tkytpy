@@ -60,11 +60,16 @@ class QueueWork(metaclass=tksingleton.SingletonMeta):
       #time.sleep(1)
 
   def add(self,item):
-    self.meanpriority=(4*self.meanpriority+item.priority)/5.
+    if (self.meanpriority>item.priority):
+      self.meanpriority=item.priority
+    else:
+      self.meanpriority=(4*self.meanpriority+item.priority)/5.
     if (item.priority>self.meanpriority*(1+random())):
       logging.debug("QueueWork.worker(): "
         +str(item)+" too high priority to run ("+str(self.meanpriority)+")")
       if (item.semaphore):
+        logging.debug(type(self).__name__
+                    +".add(): Semaphore release ("+str(item))
         item.semaphore.release()
       return False
     self.q.put(item)
@@ -93,8 +98,9 @@ class QueueWorkUniq(QueueWork):
       logging.debug(type(self).__name__+".add("+str(item)+"): already in queue"
                     +" about "+str(self.q.qsize())+" elements remaining"+
                       self.strtaskdict())
-      # FIXME: Updating priority in case the newer has higher priority
       if (item.semaphore):
+        logging.debug(type(self).__name__
+                    +".add(): Semaphore release ("+str(self))
         item.semaphore.release()
       return False
     if (not super().add(item)):
