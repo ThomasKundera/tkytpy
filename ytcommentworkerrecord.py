@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import datetime
 import json
 import sqlalchemy
@@ -49,7 +50,8 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     logging.debug(type(self).__name__+".call_sql_task_threaded(): START")
     task=YtTask('populate: '+type(self).__name__
                 +" - "+str(self.get_id()),type(self),self.get_id(),priority,semaphore,options)
-    YtQueue().add(task)
+    if not YtQueue().add(task):
+      time.sleep(30)
     logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
 
 
