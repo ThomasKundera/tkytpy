@@ -16,7 +16,7 @@ class YTVideosSpinner(YTSpinner):
   def __init__(self,field_storage):
     super().__init__(field_storage,YTVideoRecord)
 
-  def do_spin(self):
+  def do_spin_dont_use(self):
     super().do_spin_new()
 
   def get_item_to_process(self):
