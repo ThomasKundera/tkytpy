@@ -148,6 +148,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         ct.nextcmtpagetoken=None
         ct.lastwork=datetime.datetime.now()
       else:
+        if not 'replies' in thread:
+          break # As amazing as it looks, sometimes we don't have replies with non-zero reply count
         replies=thread['replies']
         comments=replies['comments']
         if (len(comments)==replycount): # We have them all
