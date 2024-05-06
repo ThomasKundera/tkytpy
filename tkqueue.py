@@ -114,8 +114,6 @@ class QueueWorkUniq(QueueWork):
       s+=" "+str(v)
     return s
 
-
-
 def test_task1():
   print("Test task1")
   time.sleep(5)
