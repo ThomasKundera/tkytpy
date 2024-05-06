@@ -41,7 +41,7 @@ class YTSpinner:
     t.call_sql_task_threaded(priority,self.semaphore)
     logging.debug(type(self).__name__+".call_populate: END")
 
-  def get_items_to_process(self):
+  def get_items_to_process_dont_use(self):
     od=self.field_storage.get_dict(self.cls)
     return od
 
@@ -56,7 +56,7 @@ class YTSpinner:
       time.sleep(10)
     logging.debug(type(self).__name__+".do_spin_new(): END")
 
-  def do_spin(self):
+  def do_spin_dont_use(self):
     logging.debug(type(self).__name__+".do_spin(): START")
     ol=[]
     od=self.get_items_to_process()
@@ -80,7 +80,7 @@ class YTSpinner:
     self.dbsession=SqlSingleton().mksession()
     while True:
       time.sleep(1)
-      self.do_spin()
+      self.do_spin_new()
 
 # --------------------------------------------------------------------------
 def main():
