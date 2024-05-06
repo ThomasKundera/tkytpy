@@ -25,6 +25,7 @@ class YTComment(YTCommentRecord):
   def from_me(self,dbsession=None):
     a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
     if not a:
+      # FIXME: reload author, which likely means reloading the thread
       logging.debug("WARNING: YTComment.from_me: author "+str(self.author)+" does not exists")
       return False
     return (a.me)
