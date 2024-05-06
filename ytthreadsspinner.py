@@ -26,7 +26,7 @@ class YTThreadsSpinner(YTSpinner):
       t=get_dbobject(YTThreadWorkerRecord,v.yid,self.dbsession)
     self.dbsession.commit()
 
-  def do_spin(self):
+  def do_spin_odnt_use(self):
     self.update_from_videos()
     super().do_spin_new()
 
