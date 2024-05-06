@@ -44,8 +44,6 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     if (commit):
       dbsession.commit()
 
-
-
   def call_sql_task_threaded(self,priority=0,semaphore=None,options=None):
     logging.debug(type(self).__name__+".call_sql_task_threaded(): START")
     task=YtTask('populate: '+type(self).__name__
