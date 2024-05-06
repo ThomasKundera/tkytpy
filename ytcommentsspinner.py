@@ -41,7 +41,7 @@ class YTCommentsSpinner(YTSpinner):
       return (1000,o) # FIXME 1000 is arbirary
     return None # No matching item found
 
-  def do_spin(self):
+  def do_spin_dont_use(self):
     super().do_spin_new()
 
 
