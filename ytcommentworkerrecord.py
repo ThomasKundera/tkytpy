@@ -55,7 +55,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
 
 
-  def get_priority(self):
+  def get_priority_dont_use(self):
     #logging.debug(type(self).__name__+".get_priority(): START")
     # FIXME: refreshing priority value is also complex
     if (self.done):
