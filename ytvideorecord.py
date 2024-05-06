@@ -44,7 +44,7 @@ class YTVideoRecord(SqlRecord,Base):
     if (len(self.yid) != 11): return False
     return valid_url(self.url)
 
-  def get_priority(self):
+  def get_priority_dont_use(self):
     # FIXME: suppress this and go for the new spinner
     # Lower the more prioritized, number should roughlt reflects
     # time (in second) before next update would be nice.
@@ -77,6 +77,7 @@ class YTVideoRecord(SqlRecord,Base):
     if (not self.valid):
       self.valid=self.is_valid_id()
       return
+    # FIXME: sleep if too short
     request=youtube.videos().list(part='snippet,statistics', id=self.yid)
     rawytdata = request.execute()
     if len(rawytdata['items']) != 1:
