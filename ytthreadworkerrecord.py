@@ -31,7 +31,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     self.yid=yid
     super().__init__(dbsession,commit)
 
-  def get_priority(self):
+  def get_priority_dont_use(self):
     dbsession=get_dbsession(self)
     ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
     if (not ytv): return sys.maxsize
