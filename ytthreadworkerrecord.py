@@ -127,7 +127,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
 
   def sql_handle_replies(self,dbsession,youtube,options,thread,ct):
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid+" "+ct.cid)
+    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid+" "+ct.tid)
     replycount=thread['snippet']['totalReplyCount']
     if (replycount == 0): # Useless to run a commentspinner: there is nothing under
       ct.done=True
@@ -166,7 +166,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     ct=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
     if (options.force_continue):
       if (ct.done and ct.etag==etag): # Thread didn't changed, as verified by etags
-        logging.debug("YTThreadWorkerRecord.sql_handle_thread(): same etags : "+self.yid)
+        logging.debug("YTThreadWorkerRecord.sql_handle_thread(): same etags : "+etag)
         return True # We go to next thread, not rewriting anything
                     # FIXME: We should notify we looked a it, and it didn't change (maybe another date field?)
 
