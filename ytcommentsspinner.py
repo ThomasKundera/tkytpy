@@ -33,7 +33,9 @@ class YTCommentsSpinner(YTSpinner):
           else_=(
             case(
               (YTCommentWorkerRecord.done != None, # Then it's a redo
+               case((YTCommentWorkerRecord.most_recent_me == None, # I never published here
               10000*(10.-func.least(func.log10(now-func.unix_timestamp(YTCommentWorkerRecord.lastwork)),9))/YTVideoRecord.monitor), # 100 times harder than easy
+               else_=(2000*(10.-func.least(func.log10(now-func.unix_timestamp(YTCommentWorkerRecord.lastwork)),9))/YTVideoRecord.monitor))), # 20 times harder than easy: we want to see new comments on known threads. # FIXME: shouldn't recent threads be more favorized?
               else_=1000*(10.-func.least(func.log10(now-func.unix_timestamp(YTCommentWorkerRecord.lastwork)),9))/YTVideoRecord.monitor) # 10 times harder than easy
               )
           )).limit(1)
