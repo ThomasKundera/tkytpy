@@ -45,7 +45,11 @@ class YtApiExecute:
     self.args=args
 
   def execute(self,force=None):
-    return self.what(force,self.args)
+    try:
+      return self.what(force,self.args)
+    except HttpError:
+      logging.debug("YtApiExecute.execute(): ERROR")
+      return None
 
 class YtApiWork:
   def __init__(self,ytapi):
