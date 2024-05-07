@@ -53,22 +53,6 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
 
 
-  def get_priority_dont_use(self):
-    #logging.debug(type(self).__name__+".get_priority(): START")
-    # FIXME: refreshing priority value is also complex
-    if (self.done):
-      return sys.maxsize
-    #dbsession=get_dbsession(self) # FIXME: this is too slow
-    #ytv=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
-    #if (not ytv): return sys.maxsize
-    #if ((not ytv.valid) or (ytv.suspended)):
-    #  return sys.maxsize
-    if not(self.lastwork):
-      return 100
-    # FIXME
-    Δt=(datetime.datetime.now()-self.lastwork).total_seconds()
-    return max((30*24*3600-Δt)/3,100)
-
   def populate_default(self):
     self.lastwork        =None
     self.done            =False
