@@ -58,7 +58,7 @@ class YTThreadsEvaluationThread:
 
 # --------------------------------------------------------------------------
 def main():
-  from fieldstorage      import FieldStorage
+  from fieldstorage    import FieldStorage
   from ytqueue         import YtQueue
   YtQueue(1)
   field_storage = FieldStorage()
