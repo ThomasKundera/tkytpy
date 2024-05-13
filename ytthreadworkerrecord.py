@@ -179,7 +179,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     return True
 
 
-  def sql_task_threaded(self,dbsession,youtube,options):
+  def sql_task_threaded(self,dbsession,youtube,options=None):
     logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START : "+self.yid)
     options=self.set_options(options)
     print("YTThreadWorkerRecord.sql_task_threaded(): self.firstthreadcid: "+str(self.firstthreadcid))
