@@ -3,11 +3,11 @@ import time
 import datetime
 from sqlalchemy import or_, and_, case
 from sqlalchemy.sql import func
-from ytthreadworkerrecord import YTThreadWorkerRecord
+from ytthreadworkerrecord import YTThreadWorkerRecord, Options
 from ytspinner            import YTSpinner
 from ytvideorecord        import YTVideoRecord
 
-from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbsession
+from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbobject_if_exists,get_dbsession
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -18,6 +18,14 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class YTThreadsSpinner(YTSpinner):
   def __init__(self,field_storage):
     super().__init__(field_storage,YTThreadWorkerRecord)
+    # FIXME: temporary hack
+    #options=Options()
+    #options.force_restart =False
+    #options.force_continue=True
+    #options.force_refresh =False
+    #options.priority=1000
+    #ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'VNqNnUJVcVs')
+    #ytw.call_refresh(options)
 
   def update_from_videos(self):
     # Creating the table from video and filling it if not existing
@@ -26,7 +34,7 @@ class YTThreadsSpinner(YTSpinner):
       t=get_dbobject(YTThreadWorkerRecord,v.yid,self.dbsession)
     self.dbsession.commit()
 
-  def do_spin_odnt_use(self):
+  def do_spin_new(self):
     self.update_from_videos()
     super().do_spin_new()
 
@@ -72,10 +80,11 @@ class YTThreadsSpinner(YTSpinner):
 # --------------------------------------------------------------------------
 def main():
   from fieldstorage      import FieldStorage
+  from ytqueue import YtQueue
   field_storage = FieldStorage()
+  YtQueue().meanpriority=10000
   yts=YTThreadsSpinner(field_storage)
   yts.run()
-  from ytqueue import YtQueue
   YtQueue().join()
 
 # --------------------------------------------------------------------------
