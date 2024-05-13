@@ -237,19 +237,21 @@ class TestYTCommentThread(unittest.TestCase):
 
   def test_compute_interest(self):
     dbsession=SqlSingleton().mksession()
-    ytct=YTCommentThread("Ugz84TKRQZboOin1LXJ4AaABAg",dbsession)
+    ytct=YTCommentThread("UgzlZaj_4k12sLhUVPx4AaABA",dbsession)
     if (ytct):
       print("GARP: "+str(ytct.compute_interest()))
 
 
 def simple_test():
-  #dbsession=SqlSingleton().mksession()
-  #ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
-  #print(ytct.compute_interest())
+  dbsession=SqlSingleton().mksession()
+  ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
+  print(ytct.compute_interest())
+  #return
   #ytct=YTCommentThread("UgjWCKGV7tqcM3gCoAEC",dbsession)
-  #ytct.set_interest()
+  ytct.set_interest()
+  return
   ytl=YTCommentThreadList()
-  ytl.force_refresh_thread("UgwfA7srutuIuW5AUdh4AaABAg")
+  ytl.force_refresh_thread("UgzlZaj_4k12sLhUVPx4AaABAg")
 
 
 # --------------------------------------------------------------------------
