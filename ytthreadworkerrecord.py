@@ -75,6 +75,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           part='id,snippet,replies',
           videoId=self.yid,
           maxResults=100)
+    # We cannot use option here, we have to force a refresh
     result=request.execute(True)
 
     if (len(result['items']) == 0):
@@ -241,10 +242,10 @@ def main():
   dbsession=SqlSingleton().mksession()
   YtQueue().meanpriority=10000
   options=Options()
-  options.force_restart =True
+  options.force_restart =False
   options.force_continue=True
   options.force_refresh =False
-  ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'LaVip3J__8Y',dbsession)
+  ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'TW6hgOc3wuI',dbsession)
   ytw.call_refresh(options)
   YtQueue().join()
   return
