@@ -44,33 +44,6 @@ class YTVideoRecord(SqlRecord,Base):
     if (len(self.yid) != 11): return False
     return valid_url(self.url)
 
-  def get_priority_dont_use(self):
-    # FIXME: suppress this and go for the new spinner
-    # Lower the more prioritized, number should roughlt reflects
-    # time (in second) before next update would be nice.
-    # Refresh priority should depends heavily on interractive accesses
-    # but we don't have that metric yet (FIXME)
-
-    if (self.suspended):
-      return sys.maxsize
-
-    Δt=datetime.datetime.now()-self.lastrefreshed
-    if (not self.valid):
-      if (Δt.total_seconds() > 30*24*3600):
-        return max((30*24*3600-Δt.total_seconds()),100)
-      return sys.maxsize
-
-    if (not self.populated):
-      return 100
-    if (not self.monitor):
-      return sys.maxsize # Max easy to handle number
-    # From here, without metrics, it's fuzzy
-    # Lets use just time to last refresh, and tagetting once a month.
-    # FIXME
-    if (Δt.total_seconds() > 30*24*3600):
-      return max((30*24*3600-Δt.total_seconds())/3,100)
-    return sys.maxsize
-
 
   def sql_task_threaded(self,dbsession,youtube):
     logging.debug("YTVideoRecord.populate(): START")
