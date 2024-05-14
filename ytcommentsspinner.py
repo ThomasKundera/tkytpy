@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+from math import log10
 import datetime
 from sqlalchemy import or_, and_, case
 from sqlalchemy.sql import func
 from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytspinner              import YTSpinner
-from sqlsingleton           import SqlSingleton
+from sqlsingleton           import SqlSingleton, get_dbobject_if_exists
 from ytvideorecord          import YTVideoRecord
 
 import logging, sys
@@ -40,45 +41,23 @@ class YTCommentsSpinner(YTSpinner):
               )
           )).limit(1)
     for o in ycwr:
-      return (1000,o) # FIXME 1000 is arbirary
+      priority=1000
+      y=get_dbobject_if_exists(YTVideoRecord,o.yid,self.dbsession)
+      # FIXME: tests missing in case it changed along the way
+      if (not o.lastwork):
+        priority=100./y.monitor
+      else:
+        if (o.done):
+          if (not o.most_recent_me):
+            priority=10000*(10.-min(log10(now-o.timestamp()),9))/y.monitor
+          else:
+            priority=2000*(10.-min(log10(now-o.lastwork.timestamp-()),9))/y.monitor
+        else:
+          priority=1000*(10.-min(log10(now-o.lastwork.timestamp()),9))/y.monitor
+      #priority=priority
+      return (priority,o)
     return None # No matching item found
 
-  def do_spin_dont_use(self):
-    super().do_spin_new()
-
-
-  def get_items_to_process_dont_use(self):
-    logging.debug(type(self).__name__+"get_items_to_process.(): START")
-    #dt=datetime.datetime(2024, 4, 26, 0, 31, 38).timestamp()
-    #sqlv=20240426003138
-    #print(dt)
-    #sys.exit(0)
-    chunck_size=200 # FIXME
-    now=datetime.datetime.now().timestamp()
-    #print(datetime.datetime.now().timestamp())
-    #ycwr=self.dbsession.query(YTCommentWorkerRecord.lastwork,
-    #                          func.unix_timestamp(YTCommentWorkerRecord.lastwork),
-    #                          #func.timestampdiff('SECOND',func.now(),YTCommentWorkerRecord.lastwork),
-    #                          now-func.unix_timestamp(YTCommentWorkerRecord.lastwork)
-    #                          ).limit(chunck_size)
-    #for o in ycwr:
-    #  print(o)
-    #sys.exit(0)
-    ycwr=self.dbsession.query(YTCommentWorkerRecord).join(
-      YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
-        and_(YTCommentWorkerRecord.done==False,
-             YTVideoRecord.valid == True,
-             YTVideoRecord.suspended ==False,
-             YTVideoRecord.monitor>0)
-        ).order_by( case((YTCommentWorkerRecord.lastwork == None,24./YTVideoRecord.monitor),
-                        else_=(now-func.unix_timestamp(YTCommentWorkerRecord.lastwork))/(3600*YTVideoRecord.monitor))).limit(chunck_size)
-    d={}
-    for o in ycwr:
-      #print (str(o.lastwork)+" "+str(o.yid))
-      k=o.tid
-      d[k]=o
-    #sys.exit(0)
-    return d
 
 # --------------------------------------------------------------------------
 def main():
