@@ -41,10 +41,6 @@ class YTSpinner:
     t.call_sql_task_threaded(priority,self.semaphore)
     logging.debug(type(self).__name__+".call_populate: END")
 
-  def get_items_to_process_dont_use(self):
-    od=self.field_storage.get_dict(self.cls)
-    return od
-
 
   def do_spin_new(self):
     logging.debug(type(self).__name__+".do_spin_new(): START")
@@ -56,21 +52,7 @@ class YTSpinner:
       time.sleep(10)
     logging.debug(type(self).__name__+".do_spin_new(): END")
 
-  def do_spin_dont_use(self):
-    logging.debug(type(self).__name__+".do_spin(): START")
-    ol=[]
-    od=self.get_items_to_process()
-    for o in od.values():
-      p=o.get_priority()
-      ol.append((p,o))
-    ols=sorted(ol, key=lambda x: x[0])
-    if (len(ols) and ols[0][0] < 1000000): # FIXME That value is arbitrary for now
-      logging.debug(type(self).__name__+".do_spin(): selected "+str(ols[0]))
-      self.call_populate(ols[0])
-    else:
-      logging.debug(type(self).__name__+".do_spin(): Nothing to do")
-      time.sleep(10)
-    logging.debug(type(self).__name__+".do_spin(): END")
+
 
   def spin(self):
     logging.debug(type(self).__name__+".spin: START")
