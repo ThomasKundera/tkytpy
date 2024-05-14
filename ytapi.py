@@ -26,8 +26,11 @@ class DataCache:
     logging.debug("DataCache.answer(): START")
     res=self.cache.get(key)
     logging.debug("DataCache.answer(): cache stats: "+str(self.cache.stats()))
-    if not res: return None
+    if not res:
+      logging.debug("DataCache.answer(): Cache miss")
+      return None
     ans=pickle.loads(res).answer
+    logging.debug("DataCache.answer(): Cache hit")
     return ans
 
   def set(self,key,request,answer):
