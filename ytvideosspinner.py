@@ -32,14 +32,14 @@ class YTVideosSpinner(YTSpinner):
              YTVideoRecord.monitor>0)
         ).order_by(
           case(
-            (YTVideoRecord.lastrefreshed == None,1000./YTVideoRecord.monitor),
+            (YTVideoRecord.lastrefreshed == None,100./YTVideoRecord.monitor),
           else_=1000*(10.-func.least(func.log10(now-func.unix_timestamp(YTVideoRecord.lastrefreshed)),9))/YTVideoRecord.monitor
               )
           ).limit(1)
     for o in yvr:
-      priority=1000
+      priority=100/o.monitor
       if (o.populated): # It's a redo
-        priority=10000
+        priority=2000/o.monitor
       #yvpriority=get_dbobject_if_exists(YTVideoRecord,o.yid,self.dbsession)
       return (priority,o)
     return None # No matching item found
