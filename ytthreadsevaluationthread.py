@@ -3,9 +3,10 @@ import time
 import datetime
 from threading import Thread, Semaphore
 #from sqlalchemy import nulls_first
-from sqlalchemy import case, or_
+from sqlalchemy import case, or_, and_
 
 from ytcommentworkerrecord  import YTCommentWorkerRecord
+from ytvideorecord          import YTVideoRecord
 from ytcommentthread        import YTCommentThread
 from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbsession
 
@@ -26,8 +27,16 @@ class YTThreadsEvaluationThread:
     logging.debug("YTThreadsEvaluationThread.run: END")
 
   def do_spin(self,dbsession,chunck_size):
+    startdate=datetime.datetime.now()
     chunck_size=100
-    tteval=dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.done==True).order_by(YTCommentWorkerRecord.lastcompute).limit(chunck_size)
+    tteval=dbsession.query(YTCommentWorkerRecord).join(
+      YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
+        and_(YTVideoRecord.valid == True,
+             YTVideoRecord.suspended ==False,
+             YTVideoRecord.monitor>0,
+             YTCommentWorkerRecord.done==True)
+        ).order_by(
+          (YTCommentWorkerRecord.lastcompute-YTCommentWorkerRecord.lastwork)/YTVideoRecord.monitor).limit(chunck_size)
     count=0
     # FIXME: date at which recompute is meaningful
     lastcompute=tteval[0].lastcompute
@@ -42,8 +51,12 @@ class YTThreadsEvaluationThread:
       if ( (t.lastcompute) and (t.lastcompute>t.lastwork)): # FIXME: forced recompute should be done when function changed
         continue
       logging.debug("YTThreadsEvaluationThread.do_spin(): lastcompute: "+str(t.lastcompute))
-      YTCommentThread(t.tid,dbsession).set_interest()
+      # We have to commit, otherwise we risks conflicts.
+      YTCommentThread(t.tid,dbsession).set_interest(True)
       count+=1
+    if (count):
+      Δt=(datetime.datetime.now()-startdate).total_seconds()
+      logging.debug("YTThreadsEvaluationThread.do_spin(): Processed: "+str(count)+" items in "+str(Δt)+" seconds ("+str(Δt/(count))+" seconds per item")
     dbsession.commit()
 
   def spin(self):
