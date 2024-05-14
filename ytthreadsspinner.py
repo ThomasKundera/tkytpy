@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from math import log10
 import time
 import datetime
 from sqlalchemy import or_, and_, case
@@ -23,8 +24,8 @@ class YTThreadsSpinner(YTSpinner):
     #options.force_restart =False
     #options.force_continue=True
     #options.force_refresh =False
-    #options.priority=1000
-    #ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'VNqNnUJVcVs')
+    #options.priority=10
+    #ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'TW6hgOc3wuI')
     #ytw.call_refresh(options)
 
   def update_from_videos(self):
@@ -35,6 +36,8 @@ class YTThreadsSpinner(YTSpinner):
     self.dbsession.commit()
 
   def do_spin_new(self):
+    #time.sleep(30)
+    #return
     self.update_from_videos()
     super().do_spin_new()
 
@@ -64,16 +67,21 @@ class YTThreadsSpinner(YTSpinner):
           else_=(
             case(
               (YTThreadWorkerRecord.nexttreadpagetoken == None, # It's a redo
-                    10000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor), # 100 times harder than easy
+                    5000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor), # 100 times harder than easy
               else_=1000*(10.-func.least(func.log10(now-func.unix_timestamp(YTThreadWorkerRecord.lastwork)),9))/YTVideoRecord.monitor) # 10 times harder than easy
               )
           )).limit(1)
     for o in ycwr:
       priority=1000
-      if (o.lastwork and (not o.nexttreadpagetoken)): # It's a redo
-        time.sleep(10) # FIXME crude deprioritisation
-        print("Really trying!!!")
-        priority=10000
+      y=get_dbobject_if_exists(YTVideoRecord,o.yid,self.dbsession)
+      # FIXME: tests missing in case it changed along the way
+      if (not o.lastwork):
+        prority=100./y.monitor
+      else:
+        if (not o.nexttreadpagetoken):
+          priority=5000*(10.-min(log10(now-o.lastwork.timestamp()),9))/y.monitor
+        else:
+          priority=1000*(10.-min(log10(now-o.lastwork.timestamp()),9))/y.monitor
       return (priority,o)
     return None # No matching item found
 
