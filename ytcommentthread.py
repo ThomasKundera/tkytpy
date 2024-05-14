@@ -141,8 +141,6 @@ class YTCommentThread():
     return d
 
 
-
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentThreadList():
@@ -245,8 +243,11 @@ class TestYTCommentThread(unittest.TestCase):
 def simple_test():
   dbsession=SqlSingleton().mksession()
   ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
-  print(ytct.compute_interest())
-  #return
+  #print(ytct.compute_interest()
+  for i in range(10):
+    ytct.set_interest(False)
+  dbsession.commit()
+  return
   #ytct=YTCommentThread("UgjWCKGV7tqcM3gCoAEC",dbsession)
   ytct.set_interest()
   return
@@ -256,7 +257,9 @@ def simple_test():
 
 # --------------------------------------------------------------------------
 def main():
-  simple_test()
+  import cProfile
+  cProfile.run('simple_test()','runstats.dat')
+  return
   from ytqueue import YtQueue
   YtQueue().join()
   return
