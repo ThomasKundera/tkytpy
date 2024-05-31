@@ -17,3 +17,8 @@ Priority booster: 0-10:
 0 : Do not
 1-10: do with more priority, 10 will cross the above scale by one level.
 
+### A rewrite around message passing ?
+A state table is preserved and updated with requests and state of completion.
+Spinners are handling them.
+
+That way we can have a fully isolated interface from implementation.
