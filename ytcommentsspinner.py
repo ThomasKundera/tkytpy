@@ -45,13 +45,13 @@ class YTCommentsSpinner(YTSpinner):
       y=get_dbobject_if_exists(YTVideoRecord,o.yid,self.dbsession)
       # FIXME: tests missing in case it changed along the way
       if (not o.lastwork):
-        priority=100./y.monitor
+        priority=900./y.monitor
       else:
         if (o.done):
           if (not o.most_recent_me):
-            priority=10000*(10.-min(log10(now-o.timestamp()),9))/y.monitor
+            priority=10000000*(10.-min(log10(now-o.timestamp()),9))/y.monitor
           else:
-            priority=2000*(10.-min(log10(now-o.lastwork.timestamp-()),9))/y.monitor
+            priority=100000*(10.-min(log10(now-o.lastwork.timestamp-()),9))/y.monitor
         else:
           priority=1000*(10.-min(log10(now-o.lastwork.timestamp()),9))/y.monitor
       #priority=priority
