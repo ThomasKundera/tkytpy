@@ -60,6 +60,12 @@ class QueueWork(metaclass=tksingleton.SingletonMeta):
       #time.sleep(1)
 
   def add(self,item):
+    if (item.priority>=1000000): # Won't do
+      logging.debug(type(self).__name__+".adde(): priority too high: ("+str(self)+")")
+      if (item.semaphore):
+        item.semaphore.release()
+      return False
+
     if (self.meanpriority>item.priority):
       self.meanpriority=item.priority
     else:
