@@ -20,12 +20,13 @@ class YTThreadsSpinner(YTSpinner):
   def __init__(self,field_storage):
     super().__init__(field_storage,YTThreadWorkerRecord)
     # FIXME: temporary hack
+    return
     #options=Options()
-    #options.force_restart =False
+    #options.force_restart =True
     #options.force_continue=True
     #options.force_refresh =False
     #options.priority=10
-    #ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'TW6hgOc3wuI')
+    #ytw=get_dbobject_if_exists(YTThreadWorkerRecord,'TW6hgO#c3wuI')
     #ytw.call_refresh(options)
 
   def update_from_videos(self):
@@ -79,7 +80,7 @@ class YTThreadsSpinner(YTSpinner):
         prority=100./y.monitor
       else:
         if (not o.nexttreadpagetoken):
-          priority=5000*(10.-min(log10(now-o.lastwork.timestamp()),9))/y.monitor
+          priority=10000000*(10.-min(log10(now-o.lastwork.timestamp()),9))/y.monitor
         else:
           priority=1000*(10.-min(log10(now-o.lastwork.timestamp()),9))/y.monitor
       return (priority,o)
