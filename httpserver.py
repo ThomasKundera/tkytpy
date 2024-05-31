@@ -84,6 +84,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     if action == 'monitor':
       value=int(js['value'])
       return self.tkyt.video_monitor_action(yid,value)
+    if action == 'refresh':
+      return self.tkyt.video_refresh_action(yid)
     return {}
 
   def get_oldest_thread_of_interest(self):

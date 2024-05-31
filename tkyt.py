@@ -40,6 +40,11 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def video_monitor_action(self,yid,value):
     return self.videos.set_monitor(yid,value)
 
+  def video_refresh_action(self,yid):
+    #print("video_refresh_action")
+    #return {}
+    return self.videos.refresh(yids)
+
   def get_newest_thread_of_interest(self):
     yth=self.commentthreadlist.get_newest_thread_of_interest()
     if (yth):
