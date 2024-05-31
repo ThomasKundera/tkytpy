@@ -23,9 +23,6 @@ class YTVideosSpinner(YTSpinner):
     logging.debug(type(self).__name__+".get_item_to_process.(): START")
     now=datetime.datetime.now().timestamp()
 
-    # To add a bit of fuziness, YTVideoRecord.monitor is scrambled a bit
-    # FIXME: would need floats
-
     yvr=self.dbsession.query(YTVideoRecord).filter(
         and_(YTVideoRecord.valid == True,
              YTVideoRecord.suspended ==False,
@@ -37,9 +34,9 @@ class YTVideosSpinner(YTSpinner):
               )
           ).limit(1)
     for o in yvr:
-      priority=100/o.monitor
+      priority=100./(0.01+o.monitor)
       if (o.populated): # It's a redo
-        priority=2000/o.monitor
+        priority=10000000./(0.01+o.monitor)
       #yvpriority=get_dbobject_if_exists(YTVideoRecord,o.yid,self.dbsession)
       return (priority,o)
     return None # No matching item found
