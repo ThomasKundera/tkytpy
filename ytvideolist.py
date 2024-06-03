@@ -12,7 +12,6 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 # --------------------------------------------------------------------------
 class YTVideoList:
-  semadict={}
   def __init__(self,field_storage):
     logging.debug("YTVideoList.__init__(): START")
     self.field_storage=field_storage
@@ -59,15 +58,18 @@ class YTVideoList:
     dbsession=SqlSingleton().mksession()
     v=get_dbobject_if_exists(YTVideo,yid,dbsession)
     if not v: return
-    if not yid in semadict:
-      semadict[yid]=Semaphore(1)
-    semadict[yid].acquire()
+    # FIXME: some semaphore mechanism needed.
+    #semaphore=Semaphore(1)
+    #if not yid in semadict:
+    #  semadict[yid]=Semaphore(1)
+    #semadict[yid].acquire()
     # Video info refresh first
-    v.call_sql_task_threaded(10,self.semaphore)
-    dbsession.merge(v)
-    dbsession.commit()
+    # FIXME: bypass cache.
+    v.call_sql_task_threaded(0)
+    #dbsession.merge(v)
+    #dbsession.commit()
     # Video comments refresh then
-    semadict[yid].acquire()
+    #semadict[yid].acquire()
     options=Options()
     options.force_restart =True
     options.force_continue=True
