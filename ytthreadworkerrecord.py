@@ -156,7 +156,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     #cid=tlc['id'] # Is same at tid, actually
     if ((pintid) and (tid !=pintid)):
       ct=get_dbobject_if_exists(YTCommentRecord,tid,dbsession) # FIXME: use comment worker record instead
-      if (ct and not option.force_continue): # That cid exists!
+      if (ct and not options.force_continue): # That cid exists!
         logging.debug("YTThreadWorkerRecord.sql_handle_thread(): Merged with old: "
           +str(tid)+" "+str(self.yid))
         self.firstthreadcid=self.firstthreadcidcandidate
