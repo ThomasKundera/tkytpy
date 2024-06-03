@@ -52,7 +52,7 @@ class YTVideoRecord(SqlRecord,Base):
       return
     # FIXME: sleep if too short
     request=youtube.videos().list(part='snippet,statistics', id=self.yid)
-    rawytdata = request.execute()
+    rawytdata = request.execute(True)
     if len(rawytdata['items']) != 1:
       self.valid=False
     else:
