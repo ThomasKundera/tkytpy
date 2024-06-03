@@ -43,7 +43,7 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def video_refresh_action(self,yid):
     #print("video_refresh_action")
     #return {}
-    return self.videos.refresh(yids)
+    return self.videos.refresh(yid)
 
   def get_newest_thread_of_interest(self):
     yth=self.commentthreadlist.get_newest_thread_of_interest()
