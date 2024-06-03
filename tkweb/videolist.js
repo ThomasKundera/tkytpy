@@ -114,7 +114,7 @@ function populateVideoList(obj) {
 
 
 async function manage_buttons(evtype,loc) {
-  #console.error(loc.target);
+  //console.error(loc.target);
   if (!(loc.target && loc.target.nodeName == "INPUT")) {
     return;
   }
