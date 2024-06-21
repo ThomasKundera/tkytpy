@@ -15,7 +15,7 @@ function create_input(type,name,id) {
 }
 
 function populate_video(div,ytv) {
-  console.log(ytv.lastinteraction);
+  console.log(ytv.yid);
   const mdv = document.createElement("div");
   cls='video';
   ytv.valid     = (ytv.valid.toLowerCase()     === "true");
@@ -109,7 +109,7 @@ function populateVideoList(obj) {
   mvldiv.setAttribute('class','videolist');
   // Display all ytvlist, sorted by lastinterraction
   ytvlist.sort(function(a,b) {
-    return b.lastinteraction-a.lastinteraction);
+    return b.lastinteraction-a.lastinteraction;
   });
   // FIXME: add a filter for suspended videos
   // FIXME: add a filter for valid videos
