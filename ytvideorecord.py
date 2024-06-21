@@ -32,7 +32,7 @@ class YTVideoRecord(SqlRecord,Base):
   oldcommentcount   = sqlalchemy.Column(sqlalchemy.Integer)
   lastrefreshed     = sqlalchemy.Column(sqlalchemy.DateTime)
   oldrefreshed      = sqlalchemy.Column(sqlalchemy.DateTime)
-  lastinterract     = sqlalchemy.Column(sqlalchemy.datetime)
+  lastinterract     = sqlalchemy.Column(sqlalchemy.DateTime)
   monitor           = sqlalchemy.Column(sqlalchemy.Integer)
   suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
 

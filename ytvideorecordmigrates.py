@@ -9,7 +9,7 @@ from sqlsingleton import SqlSingleton, Base, get_dbobject
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-class YTVideoRecord6(SqlRecord,Base):
+class YTVideoRecord7(SqlRecord,Base):
   __tablename__ = 'ytvideos0_7'
   yid               = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
   valid             = sqlalchemy.Column(sqlalchemy.Boolean)
