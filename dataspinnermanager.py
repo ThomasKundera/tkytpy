@@ -12,9 +12,9 @@ class DataSpinnersManager:
     self.yet=YTThreadsEvaluationThread (field_storage)
 
   def run(self):
-    self.yvs.run()
-    self.yts.run()
-    self.ycs.run()
+    #self.yvs.run()
+    #self.yts.run()
+    #self.ycs.run()
     self.yet.run()
 
 # --------------------------------------------------------------------------
