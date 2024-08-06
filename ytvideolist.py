@@ -23,6 +23,15 @@ class YTVideoList:
     dbsession.commit()
     return v.valid
 
+
+  def update_workerreccord(self,dbsession=None):
+    if (not dbsession):
+      dbsession=SqlSingleton().mksession()
+    l=[]
+    for v in dbsession.query(YTVideo):
+      t=get_dbobject(YTThreadWorkerRecord,v.yid,dbsession)
+    dbsession.commit()
+
   def get_video_dict(self):
     dbsession=SqlSingleton().mksession()
     l=[]
@@ -75,6 +84,10 @@ class YTVideoList:
     options.force_continue=True
     options.force_refresh =True
     options.priority=10
-    ytw=get_dbobject_if_exists(YTThreadWorkerRecord,yid)
-    ytw.call_refresh(options)
+    ytw=get_dbobject(YTThreadWorkerRecord,yid,dbsession)
+    dbsession.commit()
+    if (ytw):
+      ytw.call_refresh(options)
+    else:
+      logging.debug(type(self).__name__+".do_refresh("+yid+"): ERROR: YTThreadWorkerRecord not created")
     logging.debug(type(self).__name__+".do_refresh("+yid+"): END")
