@@ -223,6 +223,9 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     semaphore=Semaphore(1)
     # Ensuring we're working with a clean object in this threaded session:
     o=get_dbobject_if_exists(YTThreadWorkerRecord,self.yid,dbsession)
+    if (not o):
+      logging.debug("YTThreadWorkerRecord.force_full_refresh(): "+self.yid+" ERROR: non existing yid")
+      return
     if (options.force_restart):
       o.nexttreadpagetoken=None
       o.firstthreadcid=None
