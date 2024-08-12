@@ -11,6 +11,10 @@ from ytcommentrecord import YTCommentRecord
 from ytauthorrecord  import YTAuthorRecord
 from ytvideorecord   import YTVideoRecord
 
+# FIXME: this creates a loop
+#from ytcommentthread import YTCommentThread
+
+
 from sqlsingleton    import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 import logging, sys
@@ -60,6 +64,12 @@ class YTCommentWorkerRecord(SqlRecord,Base):
     self.lastcompute     =None
 
 
+  def set_interest(self,dbsession):
+    # FIXME: this is bad code
+    from ytcommentthread import YTCommentThread
+    yct=YTCommentThread(self.tid,dbsession)
+    yct.set_interest(False)
+
   def process_result(self,dbsession,youtube,result,force):
     for comment in result['items']:
         cid=comment['id']
@@ -68,6 +78,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
             logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old")
             self.done=True
             self.lastwork=datetime.datetime.now()
+            self.set_interest(dbsession)
             return
         c=get_dbobject(YTCommentRecord,cid,dbsession)
         # yid is not in the subcomment (only in topcomment)
@@ -79,6 +90,7 @@ class YTCommentWorkerRecord(SqlRecord,Base):
       self.nexttreadpagetoken=result['nextPageToken']
     else:
       self.done=True
+      self.set_interest(dbsession)
     self.lastwork=datetime.datetime.now()
 
   def sql_task_one_chunck(self,dbsession,youtube,force):
@@ -158,10 +170,10 @@ def main():
     if (not ycwl): continue
     ycwlist.append(ycwl)
 
-  for i in range(100):
-    for ycwl in ycwlist:
-      for ycw in ycwl:
+  for ycwl in ycwlist:
+    for ycw in ycwl:
         ycw.call_sql_task_threaded()
+        dbsession.commit()
     time.sleep(1)
   YtQueue().join()
   dbsession.commit()
