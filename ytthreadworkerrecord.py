@@ -110,6 +110,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       if (not self.firstthreadcid):
         # first try
          logging.debug("YTThreadWorkerRecord.sql_handle_start(): First scan")
+         if (not self.firstthreadcidcandidate):
+           self.firstthreadcidcandidate=tid
       else:
         # Rework: Check if there is anything new:
         print(self.firstthreadcid)
@@ -159,7 +161,10 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       if (ct and not options.force_continue): # That cid exists!
         logging.debug("YTThreadWorkerRecord.sql_handle_thread(): Merged with old: "
           +str(tid)+" "+str(self.yid))
-        self.firstthreadcid=self.firstthreadcidcandidate
+        if (self.firstthreadcidcandidate):
+          self.firstthreadcid=self.firstthreadcidcandidate
+        else: # Should not happens
+          raise
         self.nexttreadpagetoken=None
         self.lastwork=datetime.datetime.now()
         return False
@@ -183,12 +188,13 @@ class YTThreadWorkerRecord(SqlRecord,Base):
   def sql_task_threaded(self,dbsession,youtube,options=None):
     logging.debug("YTThreadWorkerRecord.sql_task_threaded(): START : "+self.yid)
     options=self.set_options(options)
-    print("YTThreadWorkerRecord.sql_task_threaded(): self.firstthreadcid: "+str(self.firstthreadcid))
+    logging.debug("YTThreadWorkerRecord.sql_task_threaded(): self.firstthreadcid: "+str(self.firstthreadcid))
     if (self.firstthreadcid and not options.force_restart):
       logging.debug("YTThreadWorkerRecord.sql_task_threaded(): Won't redo : "+self.yid)
       return
     (result,pintid)=self.sql_handle_start(dbsession,youtube,options)
     if (not result):
+      logging.debug("YTThreadWorkerRecord.sql_task_threaded(): not result")
       request=youtube.commentThreads().list(
         part='id,snippet,replies',
         videoId=self.yid,
@@ -218,13 +224,13 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     task.start()
 
   def refresh(self,options):
-    logging.debug("YTThreadWorkerRecord.force_full_refresh(): START : "+self.yid)
+    logging.debug("YTThreadWorkerRecord.refresh(): START : "+self.yid)
     dbsession=SqlSingleton().mksession()
     semaphore=Semaphore(1)
     # Ensuring we're working with a clean object in this threaded session:
     o=get_dbobject_if_exists(YTThreadWorkerRecord,self.yid,dbsession)
     if (not o):
-      logging.debug("YTThreadWorkerRecord.force_full_refresh(): "+self.yid+" ERROR: non existing yid")
+      logging.debug("YTThreadWorkerRecord.refresh(): "+self.yid+" ERROR: non existing yid")
       return
     if (options.force_restart):
       o.nexttreadpagetoken=None
@@ -232,14 +238,43 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       dbsession.commit()
     options.force_restart=False
     while not (o.firstthreadcid):
-      print("YTThreadWorkerRecord.refresh(): self.firstthreadcid: "+str(self.firstthreadcid))
+      logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: "+str(self.firstthreadcid))
       semaphore.acquire()
       o.call_sql_task_threaded(1000,semaphore,options)
       dbsession.refresh(o) # FIXME: I have to better understand
       time.sleep(1)
+    # Ensuring last call is processed before ending
+    semaphore.acquire()
+    semaphore.release()
+
+
+def test_refresh():
+  YtQueue(1)
+  from ytvideo import get_video_ids_from_file
+  Base.metadata.create_all()
+  dbsession=SqlSingleton().mksession()
+  YtQueue().meanpriority=10000
+  options=Options()
+  options.force_restart =False
+  options.force_continue=False
+  options.force_refresh =False
+  vidlist=get_video_ids_from_file('yturls.txt')
+  ytwlist=[]
+  for yid in vidlist:
+    ytw=get_dbobject_if_exists(YTThreadWorkerRecord,yid,dbsession)
+    if (not ytw): continue
+    logging.debug("==== test_refresh: "+str(yid))
+    ytw.refresh(options)
+  YtQueue().join()
+  dbsession.commit()
 
 # --------------------------------------------------------------------------
 def main():
+  test_refresh()
+  return
+
+
+def old():
   from ytvideo import get_video_ids_from_file
   Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
@@ -274,6 +309,7 @@ def main():
   #for ytw in ytwd[:2]:
   #  o=dbsession.merge(ytw)
   #  dbsession.commit()
+
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
   main()
