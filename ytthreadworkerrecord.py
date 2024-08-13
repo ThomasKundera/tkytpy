@@ -136,19 +136,31 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       ct.done=True
       ct.nextcmtpagetoken=None
       ct.lastwork=datetime.datetime.now()
-    else:
-      if not 'replies' in thread:
-        return # As amazing as it looks, sometimes we don't have replies with non-zero reply count
-      replies=thread['replies']
-      comments=replies['comments']
-      if (len(comments)==replycount): # We have them all
-        for jc in comments:
-          cid=jc['id']
-          c=get_dbobject(YTCommentRecord,cid,dbsession)
-          c.fill_from_json(jc,dbsession,False)
-        ct.done=True
-        ct.nextcmtpagetoken=None
-        ct.lastwork=datetime.datetime.now()
+      ct.set_interest(dbsession)
+      return
+
+    if not 'replies' in thread:  # As amazing as it looks, sometimes we don't have replies with non-zero reply count
+      ct.done=True
+      ct.nextcmtpagetoken=None
+      ct.lastwork=datetime.datetime.now()
+      ct.set_interest(dbsession)
+      return
+
+    replies=thread['replies']
+    comments=replies['comments']
+    if (len(comments)==replycount): # We have them all
+      for jc in comments:
+        cid=jc['id']
+        c=get_dbobject(YTCommentRecord,cid,dbsession)
+        c.fill_from_json(jc,dbsession,False)
+      ct.done=True
+      ct.nextcmtpagetoken=None
+      ct.lastwork=datetime.datetime.now()
+      ct.set_interest(dbsession)
+    else: # There are too many comments in that thread, lets get them now.
+      #FIXME
+      return
+
 
   def sql_handle_thread(self,dbsession,youtube,options,thread,pintid):
     logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid)
@@ -255,9 +267,9 @@ def test_refresh():
   dbsession=SqlSingleton().mksession()
   YtQueue().meanpriority=10000
   options=Options()
-  options.force_restart =False
-  options.force_continue=False
-  options.force_refresh =False
+  options.force_restart =True
+  options.force_continue=True
+  options.force_refresh =True
   vidlist=get_video_ids_from_file('yturls.txt')
   ytwlist=[]
   for yid in vidlist:
