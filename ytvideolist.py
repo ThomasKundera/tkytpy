@@ -61,6 +61,27 @@ class YTVideoList:
     logging.debug(type(self).__name__+".refresh("+yid+"): START")
     do_refresh = Thread(target=self.do_refresh, args=(yid,))
     do_refresh.start()
+    return {}
+
+
+  def refresh_all(self):
+    logging.debug(type(self).__name__+".refresh_all(): START")
+    do_refresh = Thread(target=self.do_refresh_all)
+    do_refresh.start()
+    return {}
+
+  def do_refresh_all(self):
+    logging.debug(type(self).__name__+".do_refresh_all(): START")
+    dbsession=SqlSingleton().mksession()
+    semaphore=Semaphore(1)
+    # FIXME: there is a way to perform a single call!
+    for v in dbsession.query(YTVideo):
+      if not v.suspended:
+        logging.debug(type(self).__name__+".do_refresh_all(): Do refresh for "+str(v.yid))
+        semaphore.acquire()
+        v.call_sql_task_threaded_never_give_up(10,semaphore)
+    logging.debug(type(self).__name__+".do_refresh_all(): END")
+
 
   def do_refresh(self,yid):
     logging.debug(type(self).__name__+".do_refresh("+yid+"): START")
