@@ -46,8 +46,19 @@ class SqlRecord:
     task=YtTask('populate: '+type(self).__name__
                 +" - "+str(self.get_id()),type(self),self.get_id(),priority,semaphore)
     if (not YtQueue().add(task)): # Queuing was refused, likely not high priority
-      time.sleep(30) # So we wait
+      time.sleep(1) # So we wait
+      return False
+    return True
     logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
+
+
+  def call_sql_task_threaded_never_give_up(self,priority=0,semaphore=None):
+    logging.debug(type(self).__name__+".call_sql_task_threaded_never_give_up(): START")
+    while (not self.call_sql_task_threaded(priority,semaphore)):
+      logging.debug(type(self).__name__+".call_sql_task_threaded_never_give_up(): Trying...")
+    logging.debug(type(self).__name__+".call_sql_task_threaded_never_give_up(): END")
+
+
 
   def get_priority(self):
     logging.debug(type(self).__name__+".get_priority(): START")
