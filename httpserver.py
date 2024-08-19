@@ -86,6 +86,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.tkyt.video_monitor_action(yid,value)
     if action == 'refresh':
       return self.tkyt.video_refresh_action(yid)
+    if (action == 'refreshallmetadata'):
+      return self.tkyt.video_refresh_all_action()
     return {}
 
   def get_oldest_thread_of_interest(self):
