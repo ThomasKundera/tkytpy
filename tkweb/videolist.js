@@ -107,6 +107,19 @@ function populateVideoList(obj) {
 
   const mvldiv = document.createElement("div");
   mvldiv.setAttribute('class','videolist');
+  // Refresh metadata button
+  const mdv = document.createElement("div");
+  mdv.setAttribute('class','gcontrol');
+  const mip = create_input('button','refreshallmetadata',"allmetadata")
+  mip.value="refresh all metadata"
+  mdv.appendChild(mip);
+  const lbl = document.createElement("label");
+  lbl.setAttribute('for',"all");
+  mdv.appendChild(lbl);
+  mdv.appendChild(mip);
+  mvldiv.appendChild(mdv);
+
+
   // Display all ytvlist, sorted by lastinterraction
   ytvlist.sort(function(a,b) {
     return b.lastinteraction-a.lastinteraction;
