@@ -14,8 +14,8 @@ class DataSpinnersManager:
   def run(self):
     #self.yvs.run()
     #self.yts.run()
-    #self.ycs.run()
-    self.yet.run()
+    self.ycs.run()
+    #self.yet.run()
 
 # --------------------------------------------------------------------------
 def main():
