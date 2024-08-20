@@ -17,130 +17,6 @@ import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 
-class YTComment(YTCommentRecord):
-  def __init__(self,dbsession,cid,commit=True):
-    self.cid=cid
-    super().__init__(dbsession,commit)
-
-  def from_me(self,dbsession=None):
-    a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
-    if not a:
-      # FIXME: reload author, which likely means reloading the thread
-      logging.debug("WARNING: YTComment.from_me: author "+str(self.author)+" does not exists")
-      return False
-    return (a.me)
-
-  def has_me(self):
-    me=['kundera', 'kuntera' 'cuntera']
-    for k in me:
-      if (k in self.text.lower()):
-        return True
-    return False
-
-  def from_friends(self,dbsession=None):
-    a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
-    return (a.friend)
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-class YTCommentThread():
-  def __init__(self,tid,dbsession=None):
-    self.tid=tid
-    if not dbsession:
-      self.dbsession=SqlSingleton().mksession()
-    else:
-      self.dbsession=dbsession
-
-  def get_comment_list(self,with_tlc=False):
-    #with_tlc=False
-    if (with_tlc):
-      return self.dbsession.query(YTComment).filter(
-        or_((YTComment.parent == self.tid) , (YTComment.cid == self.tid))
-        ).order_by(YTComment.updated)
-    return self.dbsession.query(YTComment).filter(YTComment.parent == self.tid).order_by(YTComment.updated)
-
-
-  def i_posted_there(self):
-    comments=self.get_comment_list(True)
-    print(comments)
-    for c in comments:
-      print("GARP: "+str(c))
-      if (c.from_me(self.dbsession)):
-        return True
-    return False
-
-  def compute_interest(self,cwr=None):
-    #logging.debug("YTCommentThread.compute_interest: START")
-    comments=self.get_comment_list(True)
-    has_me=0
-    from_me=0
-    has_me_after=0
-    replies_after=0
-    most_recent_me=datetime.datetime(2000, 1, 1)
-    most_recent_reply=datetime.datetime(2000, 1, 1)
-    ignore_before=None
-    if (cwr):
-      ignore_before=cwr.ignore_before
-    if ignore_before ==  None:
-      ignore_before=datetime.datetime(2000, 1, 1)
-
-    for c in comments:
-      if (c.from_me(self.dbsession)):
-        from_me+=1
-        replies_after=0
-        has_me_after=0
-        if (c.updated > most_recent_me):
-          most_recent_me=c.updated
-      else:
-        if (c.updated <= ignore_before):
-          continue
-        if (from_me>0):
-          replies_after+=1
-          if (c.has_me()):
-            has_me_after+=1
-        if (c.updated > most_recent_reply):
-          most_recent_reply=c.updated
-    interest_level=(from_me)*(replies_after+has_me_after*10)
-
-    if (most_recent_me < datetime.datetime(2001, 1, 1)):
-      most_recent_me = None
-    if (most_recent_reply < datetime.datetime(2001, 1, 1)):
-      most_recent_reply = None
-
-    if (cwr):
-      cwr.interest_level=interest_level
-      cwr.most_recent_me=most_recent_me
-      if (most_recent_me):
-        if (not cwr.ignore_before):
-           cwr.ignore_before=most_recent_me
-        elif (most_recent_me>cwr.ignore_before):
-          cwr.ignore_before=most_recent_me
-      cwr.most_recent_reply=most_recent_reply
-    return interest_level
-
-  def set_interest(self,commit=True):
-    cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,self.dbsession)
-    self.compute_interest(cwr)
-    cwr.lastcompute=datetime.datetime.now()
-    if (commit):
-      self.dbsession.commit()
-
-  def to_dict(self):
-    d={}
-    cwr=get_dbobject_if_exists(YTComment,self.tid,self.dbsession)
-    if not cwr:
-      return {}
-    tlc=cwr.to_dict()
-    d={'tlc': tlc}
-    cl=[]
-    cml=self.get_comment_list()
-    for c in cml:
-      cl.append(c.to_dict())
-    d['clist']=cl
-    return d
-
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentThreadList():
@@ -157,8 +33,7 @@ class YTCommentThreadList():
         ).order_by(YTCommentWorkerRecord.most_recent_me).limit(1)
     if (threads.count()==0):
       return None
-    t=YTCommentThread(threads[0].tid)
-    return t
+    return threads[0]
 
   def get_newest_thread_of_interest(self):
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
@@ -169,12 +44,28 @@ class YTCommentThreadList():
         ).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(1)
     if (threads.count()==0):
       return None
-    t=YTCommentThread(threads[0].tid)
-    return t
+    return threads[0]
+
+  def get_thread_from_ytcw(self,ytcw):
+    if (ytcw):
+      return ytcw.to_dict(self.dbsession)
+    return {}
 
   def get_thread(self,tid):
-    t=YTCommentThread(tid)
+    t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
     return t
+
+  def get_thread_dict(self,tid):
+    t=self.get_thread(tid)
+    return self.get_thread_from_ytcw(t)
+
+  def get_oldest_thread_of_interest_as_dict(self):
+    t=self.get_oldest_thread_of_interest()
+    return self.get_thread_from_ytcw(t)
+
+  def get_newest_thread_of_interest_as_dict(self):
+    t=self.get_newest_thread_of_interest()
+    return self.get_thread_from_ytcw(t)
 
   def force_refresh_thread(self,tid):
     t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
@@ -182,10 +73,9 @@ class YTCommentThreadList():
       t.call_sql_task_threaded(0,options=True) # This should be safe, after looking.
       # Only annoying case is if exact same task is queued, it will
       # be discarded even if the other one has lower priority.
-      yct=YTCommentThread(tid,self.dbsession)
       # FIXME time.sleep(10) # This to have the thread updated.
       self.dbsession.merge(t) # FIXME: I have to better understand
-      yct.set_interest()
+      t.set_interest(self.dbsession)
       # A commit would be needed after the command ran.
       # A callback would be nice
 
@@ -199,15 +89,16 @@ class YTCommentThreadList():
 
 
   def set_ignore_from_comment(self,cid):
+    logging.debug(type(self).__name__+".set_ignore_from_comment( "+str(cid)+" : START")
     cmt=get_dbobject_if_exists(YTCommentRecord,cid,self.dbsession)
     if (cmt):
+      logging.debug(type(self).__name__+".set_ignore_from_comment() : 2")
       tid=cmt.parent
       if (tid == None):
         tid=cmt.cid
       tcwr=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
       tcwr.ignore_before=cmt.updated
-      yct=YTCommentThread(tid,self.dbsession)
-      yct.set_interest()
+      tcwr.set_interest(self.dbsession)
 
 class TestYTComment(unittest.TestCase):
   def test_from(self):
@@ -242,10 +133,10 @@ class TestYTCommentThread(unittest.TestCase):
 
 def simple_test():
   dbsession=SqlSingleton().mksession()
-  ytct=YTCommentThread("Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
+  ytct=get_dbobject_if_exists(YTCommentWorkerRecord,"Ugz2eqcV5SC1sFC6FB14AaABAg",dbsession)
   #print(ytct.compute_interest()
   for i in range(10):
-    ytct.set_interest(False)
+    ytct.set_interest(dbsession,False)
   dbsession.commit()
   return
   #ytct=YTCommentThread("UgjWCKGV7tqcM3gCoAEC",dbsession)
