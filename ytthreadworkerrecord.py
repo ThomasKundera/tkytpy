@@ -128,22 +128,18 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         self.nexttreadpagetoken=None
     return (result,pintid)
 
+  def close_commentworkerreccord(self,dbsession,ctr):
+    ctr.completed(dbsession)
 
-  def sql_handle_replies(self,dbsession,youtube,options,thread,ct):
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid+" "+ct.tid)
+  def sql_handle_replies(self,dbsession,youtube,options,thread,ctr):
+    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid+" "+ctr.tid)
     replycount=thread['snippet']['totalReplyCount']
     if (replycount == 0): # Useless to run a commentspinner: there is nothing under
-      ct.done=True
-      ct.nextcmtpagetoken=None
-      ct.lastwork=datetime.datetime.now()
-      ct.set_interest(dbsession)
+      self.close_commentworkerreccord(dbsession,ctr)
       return
 
     if not 'replies' in thread:  # As amazing as it looks, sometimes we don't have replies with non-zero reply count
-      ct.done=True
-      ct.nextcmtpagetoken=None
-      ct.lastwork=datetime.datetime.now()
-      ct.set_interest(dbsession)
+      self.close_commentworkerreccord(dbsession,ctr)
       return
 
     replies=thread['replies']
@@ -153,13 +149,10 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         cid=jc['id']
         c=get_dbobject(YTCommentRecord,cid,dbsession)
         c.fill_from_json(jc,dbsession,False)
-      ct.done=True
-      ct.nextcmtpagetoken=None
-      ct.lastwork=datetime.datetime.now()
-      ct.set_interest(dbsession)
+      self.close_commentworkerreccord(dbsession,ctr)
     else: # There are too many comments in that thread, lets get them now.
-      #FIXME
-      return
+      ctr.sql_task_threaded(dbsession,youtube,options.force_refresh)
+      self.close_commentworkerreccord(dbsession,ctr)
 
 
   def sql_handle_thread(self,dbsession,youtube,options,thread,pintid):
@@ -181,19 +174,19 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         self.lastwork=datetime.datetime.now()
         return False
     # Still new stuff (or force_continue)
-    ct=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
+    ctr=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
     if (options.force_continue):
-      if (ct.done and ct.etag==etag): # Thread didn't changed, as verified by etags
+      if (ctr.done and ctr.etag==etag): # Thread didn't changed, as verified by etags
         logging.debug("YTThreadWorkerRecord.sql_handle_thread(): same etags : "+etag)
         return True # We go to next thread, not rewriting anything
                     # FIXME: We should notify we looked a it, and it didn't change (maybe another date field?)
 
     logging.debug("YTThreadWorkerRecord.sql_handle_thread(): going on : "+self.yid)
-    ct.set_yid_etag(self.yid,etag,False)
+    ctr.set_yid_etag(self.yid,etag,False)
     c=get_dbobject(YTCommentRecord,tid,dbsession)
     c.fill_from_json(tlc,dbsession,False)
     #print(thread['snippet'])
-    self.sql_handle_replies(dbsession,youtube,options,thread,ct)
+    self.sql_handle_replies(dbsession,youtube,options,thread,ctr)
     return True
 
 

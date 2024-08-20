@@ -1,161 +1,137 @@
 #!/usr/bin/env python3
-import time
+import unittest
 import datetime
-import json
+from sqlalchemy.sql import func
 import sqlalchemy
-from sqlalchemy.orm import Session
 
-from ytqueue         import YtQueue, YtTask
-from sqlrecord       import SqlRecord
-from ytcommentrecord import YTCommentRecord
-from ytauthorrecord  import YTAuthorRecord
-from ytvideorecord   import YTVideoRecord
+from sqlalchemy import or_, and_
+from ytcommentworkerrecord0  import YTCommentWorkerRecord0
+from ytcommentrecord        import YTCommentRecord
+from ytauthorrecord         import YTAuthorRecord
+from sqlrecord              import SqlRecord
+from ytvideorecord          import YTVideoRecord
 
-# FIXME: this creates a loop
-#from ytcommentthread import YTCommentThread
-
-
-from sqlsingleton    import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
+from sqlsingleton import SqlSingleton, Base, get_dbsession, get_dbobject, get_dbobject_if_exists
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-class YTCommentWorkerRecord(SqlRecord,Base):
-  __tablename__            = 'ytcommentworkerrecord0_7'
-  tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
-  yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
-  lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
-  done                     = sqlalchemy.Column(sqlalchemy.Boolean)
-  interest_level           = sqlalchemy.Column(sqlalchemy.Integer)
-  most_recent_me           = sqlalchemy.Column(sqlalchemy.DateTime)
-  most_recent_reply        = sqlalchemy.Column(sqlalchemy.DateTime)
-  ignore_before            = sqlalchemy.Column(sqlalchemy.DateTime)
-  lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
-  etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
-  nextcmtpagetoken         = sqlalchemy.Column(sqlalchemy.Unicode(200))
 
-  def __init__(self,dbsession,tid,commit=True):
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+class YTCommentWorkerRecord(YTCommentWorkerRecord0):
+  def __init__(self,dbsession,tid,commit=None):
+    logging.debug("YTCommentWorkerRecord.__init__("+str(tid)+"): START")
     self.tid=tid
     super().__init__(dbsession,commit)
 
-  def set_yid_etag(self,yid,etag,commit=True):
-    if (commit):
-      dbsession=get_dbsession(self)
-    self.yid=yid
-    self.etag=etag
+
+  def get_comment_list(self,dbsession,with_tlc=False):
+    print("GARP: "+str(dbsession))
+    #with_tlc=False
+    if (with_tlc):
+      return dbsession.query(YTCommentRecord).filter(
+        or_((YTCommentRecord.parent == self.tid) , (YTCommentRecord.cid == self.tid))
+        ).order_by(YTCommentRecord.updated)
+    return dbsession.query(YTCommentRecord).filter(YTCommentRecord.parent == self.tid).order_by(YTCommentRecord.updated)
+
+  def delete(self,dbsession):
+    comments=self.get_comment_list(dbsession,True)
+    dbsession.delete(comments)
+
+  def i_posted_there(self,dbsession):
+    comments=self.get_comment_list(dbsession,True)
+    print(comments)
+    for c in comments:
+      print("GARP: "+str(c))
+      if (c.from_me(dbsession)):
+        return True
+    return False
+
+  def compute_interest(self,dbsession,cwr=None):
+    logging.debug("YTCommentWorkerRecord.compute_interest: START")
+    comments=self.get_comment_list(dbsession,True)
+    has_me=0
+    from_me=0
+    has_me_after=0
+    replies_after=0
+    most_recent_me=datetime.datetime(2000, 1, 1)
+    most_recent_reply=datetime.datetime(2000, 1, 1)
+    ignore_before=None
+    if (cwr):
+      ignore_before=cwr.ignore_before
+    if ignore_before ==  None:
+      ignore_before=datetime.datetime(2000, 1, 1)
+
+    for c in comments:
+      if (c.from_me(dbsession)):
+        from_me+=1
+        replies_after=0
+        has_me_after=0
+        if (c.updated > most_recent_me):
+          most_recent_me=c.updated
+      else:
+        if (c.updated <= ignore_before):
+          continue
+        if (from_me>0):
+          replies_after+=1
+          if (c.has_me()):
+            has_me_after+=1
+        if (c.updated > most_recent_reply):
+          most_recent_reply=c.updated
+    interest_level=(from_me)*(replies_after+has_me_after*10)
+
+    if (most_recent_me < datetime.datetime(2001, 1, 1)):
+      most_recent_me = None
+    if (most_recent_reply < datetime.datetime(2001, 1, 1)):
+      most_recent_reply = None
+
+    if (cwr):
+      cwr.interest_level=interest_level
+      cwr.most_recent_me=most_recent_me
+      if (most_recent_me):
+        if (not cwr.ignore_before):
+           cwr.ignore_before=most_recent_me
+        elif (most_recent_me>cwr.ignore_before):
+          cwr.ignore_before=most_recent_me
+      cwr.most_recent_reply=most_recent_reply
+    return interest_level
+
+  def set_interest(self,dbsession,commit=True):
+    self.compute_interest(dbsession)
+    #cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,dbsession)
+    #self.compute_interest(cwr)
+    self.lastcompute=datetime.datetime.now()
     if (commit):
       dbsession.commit()
 
-  def call_sql_task_threaded(self,priority=0,semaphore=None,options=None):
-    logging.debug(type(self).__name__+".call_sql_task_threaded(): START")
-    task=YtTask('populate: '+type(self).__name__
-                +" - "+str(self.get_id()),type(self),self.get_id(),priority,semaphore,options)
-    if not YtQueue().add(task):
-      time.sleep(30)
-    logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
-
-
-  def populate_default(self):
-    self.lastwork        =None
-    self.done            =False
-    self.interest_level  =0
-    self.lastcompute     =None
-
-
-  def set_interest(self,dbsession):
-    # FIXME: this is bad code
-    from ytcommentthread import YTCommentThread
-    yct=YTCommentThread(self.tid,dbsession)
-    yct.set_interest(False)
-
-  def process_result(self,dbsession,youtube,result,force):
-    for comment in result['items']:
-        cid=comment['id']
-        o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
-        if ((not force) and o):
-            logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old")
-            self.done=True
-            self.lastwork=datetime.datetime.now()
-            self.set_interest(dbsession)
-            return
-        c=get_dbobject(YTCommentRecord,cid,dbsession)
-        # yid is not in the subcomment (only in topcomment)
-        # adding it by hand
-        comment['snippet']['videoId']=self.yid
-        c.fill_from_json(comment,dbsession,False)
-
-    if ('nextPageToken' in result):
-      self.nexttreadpagetoken=result['nextPageToken']
-    else:
-      self.done=True
-      self.set_interest(dbsession)
+  def completed(self,dbsession):
+    logging.debug("YTCommentWorkerRecord.completed(): START")
+    self.done=True
+    self.nextcmtpagetoken=None
     self.lastwork=datetime.datetime.now()
+    self.set_interest(dbsession,False)
+    logging.debug("YTCommentWorkerRecord.completed(): 2")
+    if ((not self.most_recent_me) and (not self.most_recent_reply)):
+      logging.debug("YTCommentWorkerRecord.completed(): Erasing comments")
+      self.delete(dbsession)
+    logging.debug("YTCommentWorkerRecord.completed(): END")
 
-  def sql_task_one_chunck(self,dbsession,youtube,force):
-    logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): START")
-    if (not self.nextcmtpagetoken):
-          request=youtube.comments().list(
-            part='snippet',
-            parentId=self.tid,
-            maxResults=100)
-    else:
-      request=youtube.comments().list(
-        part='snippet',
-        pageToken=self.nexttreadpagetoken,
-        maxResults=100)
-    result=request.execute(force)
-    self.process_result(dbsession,youtube,result,force)
-    logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): END")
+  def to_dict(self,dbsession):
+    d={}
+    cwr=get_dbobject_if_exists(YTCommentRecord,self.tid,dbsession)
+    if not cwr:
+      return {}
+    tlc=cwr.to_dict()
+    d={'tlc': tlc}
+    cl=[]
+    cml=self.get_comment_list(dbsession)
+    for c in cml:
+      cl.append(c.to_dict())
+    d['clist']=cl
+    return d
 
-
-  def sql_task_threaded(self,dbsession,youtube,force=False):
-    logging.debug("YTCommentWorkerRecord.sql_task_threaded.("+str(force)+"): START : "+self.yid)
-    if (self.done):
-      request=youtube.comments().list(
-            part='snippet',
-            parentId=self.tid,
-            maxResults=100)
-      result=request.execute(True)
-      if (len(result['items'])):
-        cid=result['items'][0]['id']
-        o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
-        if ((not force) and o):
-          logging.debug("YTCommentWorkerRecord.sql_task_threaded(): Nothing changed")
-          self.lastwork=datetime.datetime.now()
-          return
-        self.done=False
-        self.process_result(dbsession,youtube,result,force)
-      else:
-        logging.debug("YTCommentWorkerRecord.sql_task_threaded(): No item")
-        self.lastwork=datetime.datetime.now()
-        return
-    v=0
-    while not self.done:
-      v+=1
-      if v>10: # Max nb of comments is 500, so 5 iterations.
-        raise  # Should not happens
-      self.sql_task_one_chunck(dbsession,youtube,force)
-    logging.debug("YTCommentWorkerRecord.sql_task_threaded: END")
-
-def import_from_file(dbsession):
-  f=open('parents-id.txt','rt')
-  for line in f.readlines():
-    res=line.split(',')
-    if (len(res)==2):
-      tid=res[0].strip()
-      yid=res[1].strip()
-      ycw=get_dbobject_if_exists(YTCommentWorkerRecord,tid,dbsession)
-      if True:
-        if (ycw): dbsession.delete(ycw)
-        logging.debug("Adding "+str(tid)+" from "+str(yid))
-        ycw=get_dbobject(YTCommentWorkerRecord,tid,dbsession,False)
-        ycw.set_yid_etag(yid,None,False)
-
-  dbsession.commit()
-
-#  --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 def main():
   import time
   from ytqueue        import YtQueue
