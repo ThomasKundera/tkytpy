@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import tksingleton
 
-from ytvideolist       import YTVideoList
-from ytcommentthread   import YTCommentThreadList
+from ytvideolist           import YTVideoList
+from ytcommentthreadlist   import YTCommentThreadList
 
 class TkYt(metaclass=tksingleton.SingletonMeta):
   def __init__(self,field_storage):
@@ -48,24 +48,14 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def video_refresh_all_action(self):
     return self.videos.refresh_all()
 
-
   def get_newest_thread_of_interest(self):
-    yth=self.commentthreadlist.get_newest_thread_of_interest()
-    if (yth):
-      return yth.to_dict()
-    return {}
+    return self.commentthreadlist.get_newest_thread_of_interest_as_dict()
 
   def get_oldest_thread_of_interest(self):
-    yth=self.commentthreadlist.get_oldest_thread_of_interest()
-    if (yth):
-      return yth.to_dict()
-    return {}
+    return self.commentthreadlist.get_oldest_thread_of_interest_as_dict()
 
   def get_thread(self,tid):
-    yth=self.commentthreadlist.get_thread(tid)
-    if (yth):
-      return yth.to_dict()
-    return {}
+    return self.commentthreadlist.get_thread_dict(tid)
 
   def force_refresh_thread(self,tid):
     self.commentthreadlist.force_refresh_thread(tid)
