@@ -25,6 +25,7 @@ def get_dbsession(o):
 
 # --------------------------------------------------------------------------
 def get_dbobject(myclass,key,dbsession=None,commit=True):
+  logging.debug("get_dbobject( "+str(myclass)+" , "+str(key)+" , ) : START")
   if not (dbsession):
     dbsession=SqlSingleton().mksession()
   o=dbsession.query(myclass).get(key)
