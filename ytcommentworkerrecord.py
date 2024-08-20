@@ -48,7 +48,7 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
         return True
     return False
 
-  def compute_interest(self,dbsession,cwr=None):
+  def compute_interest(self,dbsession,do_set=False):
     logging.debug("YTCommentWorkerRecord.compute_interest: START")
     comments=self.get_comment_list(dbsession,True)
     has_me=0
@@ -57,9 +57,7 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
     replies_after=0
     most_recent_me=datetime.datetime(2000, 1, 1)
     most_recent_reply=datetime.datetime(2000, 1, 1)
-    ignore_before=None
-    if (cwr):
-      ignore_before=cwr.ignore_before
+    ignore_before=self.ignore_before
     if ignore_before ==  None:
       ignore_before=datetime.datetime(2000, 1, 1)
 
@@ -86,22 +84,25 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
     if (most_recent_reply < datetime.datetime(2001, 1, 1)):
       most_recent_reply = None
 
-    if (cwr):
-      cwr.interest_level=interest_level
-      cwr.most_recent_me=most_recent_me
+    if (do_set):
+      self.interest_level=interest_level
+      self.most_recent_me=most_recent_me
       if (most_recent_me):
         if (not cwr.ignore_before):
-           cwr.ignore_before=most_recent_me
+          self.ignore_before=most_recent_me
         elif (most_recent_me>cwr.ignore_before):
-          cwr.ignore_before=most_recent_me
-      cwr.most_recent_reply=most_recent_reply
+          self.ignore_before=most_recent_me
+        self.most_recent_reply=most_recent_reply
+      self.lastcompute=datetime.datetime.now()
     return interest_level
 
   def set_interest(self,dbsession,commit=True):
-    self.compute_interest(dbsession)
+    logging.debug("YTCommentWorkerRecord.set_interest(): START")
+    level=self.compute_interest(dbsession,True)
     #cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,dbsession)
     #self.compute_interest(cwr)
-    self.lastcompute=datetime.datetime.now()
+    #self.interest_level=level
+    logging.debug("YTCommentWorkerRecord.set_interest(): interest_level = "+str(self.interest_level))
     if (commit):
       dbsession.commit()
 
