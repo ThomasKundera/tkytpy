@@ -18,6 +18,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class SqlRecord:
   def __init__(self,dbsession,commit=True):
     self.populate_default()
+    # self.dbsession=dbsession FIXME
     if (commit):
       dbsession.commit()
 
