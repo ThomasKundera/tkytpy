@@ -22,3 +22,7 @@ A state table is preserved and updated with requests and state of completion.
 Spinners are handling them.
 
 That way we can have a fully isolated interface from implementation.
+
+### DB access getting too slow.
+Removing as much as possible from useless threads: removing comments, content, etc.
+Just keeping etags.
