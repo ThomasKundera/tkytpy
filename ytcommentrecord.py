@@ -10,8 +10,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 class YTCommentRecord(YTCommentRecord0):
   def __init__(self,dbsession,cid,commit=True):
-    self.cid=cid
-    super().__init__(dbsession,commit)
+    super().__init__(dbsession,cid,commit)
 
   def from_me(self,dbsession=None):
     a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
