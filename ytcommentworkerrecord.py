@@ -22,8 +22,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class YTCommentWorkerRecord(YTCommentWorkerRecord0):
   def __init__(self,dbsession,tid,commit=None):
     logging.debug("YTCommentWorkerRecord.__init__("+str(tid)+"): START")
-    self.tid=tid
-    super().__init__(dbsession,commit)
+    super().__init__(dbsession,tid,commit)
 
 
   def get_comment_list(self,dbsession,with_tlc=False):
@@ -36,6 +35,9 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
     return dbsession.query(YTCommentRecord).filter(YTCommentRecord.parent == self.tid).order_by(YTCommentRecord.updated)
 
   def delete(self,dbsession):
+    logging.debug("YTCommentWorkerRecord.delete(): START: FIXME")
+    # not doing it #FIXME
+    return
     comments=self.get_comment_list(dbsession,True)
     dbsession.delete(comments)
 
@@ -88,9 +90,9 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
       self.interest_level=interest_level
       self.most_recent_me=most_recent_me
       if (most_recent_me):
-        if (not cwr.ignore_before):
+        if (not self.ignore_before):
           self.ignore_before=most_recent_me
-        elif (most_recent_me>cwr.ignore_before):
+        elif (most_recent_me>self.ignore_before):
           self.ignore_before=most_recent_me
         self.most_recent_reply=most_recent_reply
       self.lastcompute=datetime.datetime.now()
@@ -149,8 +151,7 @@ def main():
 
   for ycwl in ycwlist:
     for ycw in ycwl:
-        ycw.call_sql_task_threaded()
-        dbsession.commit()
+      ycw.call_sql_task_threaded()
     time.sleep(1)
   YtQueue().join()
   dbsession.commit()
