@@ -69,38 +69,46 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
 
   def process_result(self,dbsession,youtube,result,force):
     logging.debug("YTCommentWorkerRecord.process_result(): START")
+    cn=0
     for comment in result['items']:
-        cid=comment['id']
-        logging.debug("YTCommentWorkerRecord.process_result(): working on cid = "+str(cid))
-        o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
-        if ((not force) and o):
-            logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old")
-            self.completed(dbsession)
-            logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old: done")
-            return
-        c=get_dbobject(YTCommentRecord,cid,dbsession)
-        # yid is not in the subcomment (only in topcomment)
-        # adding it by hand
-        comment['snippet']['videoId']=self.yid
-        c.fill_from_json(comment,dbsession,False)
-
+      cn+=1
+      cid=comment['id']
+      logging.debug("YTCommentWorkerRecord.process_result(): working on cid = "+str(cid))
+      o=get_dbobject_if_exists(YTCommentRecord,cid,dbsession)
+      if ((not force) and o):
+          logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old")
+          self.completed(dbsession)
+          logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): Merged with old: done")
+          return
+      c=get_dbobject(YTCommentRecord,cid,dbsession)
+      # yid is not in the subcomment (only in topcomment)
+      # adding it by hand
+      comment['snippet']['videoId']=self.yid
+      c.fill_from_json(comment,dbsession,False)
+    logging.debug("YTCommentWorkerRecord.process_result():number of processed comments = "+str(cn))
     if ('nextPageToken' in result):
-      self.nexttreadpagetoken=result['nextPageToken']
+      logging.debug("YTCommentWorkerRecord.process_result(): 2: "+str(result['nextPageToken']))
+      self.nextcmtpagetoken=result['nextPageToken']
     else:
+      logging.debug("YTCommentWorkerRecord.process_result(): 3")
       self.completed(dbsession)
     self.lastwork=datetime.datetime.now()
 
   def sql_task_one_chunck(self,dbsession,youtube,force):
     logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): START")
+    logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 1: "+str(self.nextcmtpagetoken))
     if (not self.nextcmtpagetoken):
-          request=youtube.comments().list(
-            part='snippet',
-            parentId=self.tid,
-            maxResults=100)
-    else:
+      logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 2")
       request=youtube.comments().list(
         part='snippet',
-        pageToken=self.nexttreadpagetoken,
+        parentId=self.tid,
+        maxResults=100)
+    else:
+      logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 3")
+      request=youtube.comments().list(
+        part='snippet',
+        parentId=self.tid,
+        pageToken=self.nextcmtpagetoken,
         maxResults=100)
     result=request.execute(force)
     self.process_result(dbsession,youtube,result,force)
@@ -108,7 +116,7 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
 
 
   def sql_task_threaded(self,dbsession,youtube,force=False):
-    logging.debug("YTCommentWorkerRecord.sql_task_threaded.("+str(force)+"): START : "+self.yid)
+    logging.debug("YTCommentWorkerRecord.sql_task_threaded("+str(force)+"): START : "+self.yid+" "+self.tid)
     if (self.done):
       request=youtube.comments().list(
             part='snippet',
@@ -131,7 +139,7 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
     v=0
     while not self.done:
       v+=1
-      if v>10: # Max nb of comments is 500, so 5 iterations.
+      if v>10: # Max nb of comments is 500, but chunk size is strange (not always 100?) FIXME
         raise  # Should not happens
       self.sql_task_one_chunck(dbsession,youtube,force)
     logging.debug("YTCommentWorkerRecord.sql_task_threaded: END")
