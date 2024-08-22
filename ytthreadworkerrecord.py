@@ -57,7 +57,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
   def get_tlc_date_tid(self,thread):
     date=datetime.datetime.strptime(
-      thread['snippet']['topLevelComment']['snippet']['updatedAt'],"%Y-%m-%dT%H:%M:%SZ")
+      thread['snippet']['topLevelComment']['snippet']['publishedAt'],"%Y-%m-%dT%H:%M:%SZ")
     tid=thread['id']
     return (date,tid)
 
@@ -71,6 +71,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     return options
 
   def manage_first_request(self,youtube):
+    logging.debug("YTThreadWorkerRecord.manage_first_request(): START")
     request=youtube.commentThreads().list(
           part='id,snippet,replies',
           videoId=self.yid,
@@ -82,16 +83,22 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       raise # Should never occurs
     pintid=None
     (date0,tid0)=self.get_tlc_date_tid(result['items'][0])
+    #logging.debug(date0)
     if (len(result['items']) == 1):
+      #logging.debug("GARP 1")
       tid=tid0
     else:
+      #logging.debug("GARP 2")
       (date1,tid1)=self.get_tlc_date_tid(result['items'][1])
+      #logging.debug(date1)
       if date0>date1:
+        #logging.debug("GARP 3")
         tid=tid0
       else:
+        #logging.debug("GARP 4")
         tid=tid1
         pintid=tid0,
-
+    logging.debug("YTThreadWorkerRecord.manage_first_request(): END "+str(tid)+" "+str(pintid))
     return (tid,pintid,result)
 
 
@@ -114,8 +121,8 @@ class YTThreadWorkerRecord(SqlRecord,Base):
            self.firstthreadcidcandidate=tid
       else:
         # Rework: Check if there is anything new:
-        print(self.firstthreadcid)
-        print(self.nexttreadpagetoken)
+        #print(self.firstthreadcid)
+        #print(self.nexttreadpagetoken)
         if (tid == self.firstthreadcid and not options.force_restart):
           # Nothing changed, return
           logging.debug("YTThreadWorkerRecord.sql_handle_start(): Nothing changed")
@@ -132,7 +139,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
     ctr.completed(dbsession)
 
   def sql_handle_replies(self,dbsession,youtube,options,thread,ctr):
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid+" "+ctr.tid)
+    logging.debug("YTThreadWorkerRecord.sql_handle_replies(): START : "+self.yid+" "+ctr.tid)
     replycount=thread['snippet']['totalReplyCount']
     if (replycount == 0): # Useless to run a commentspinner: there is nothing under
       self.close_commentworkerreccord(dbsession,ctr)
@@ -144,6 +151,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
     replies=thread['replies']
     comments=replies['comments']
+    logging.debug("YTThreadWorkerRecord.sql_handle_replies(): 2 : "+str(replycount)+" "+str(len(comments)))
     if (len(comments)==replycount): # We have them all
       for jc in comments:
         cid=jc['id']
@@ -151,18 +159,19 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         c.fill_from_json(jc,dbsession,False)
       self.close_commentworkerreccord(dbsession,ctr)
     else: # There are too many comments in that thread, lets get them now.
+      logging.debug("YTThreadWorkerRecord.sql_handle_replies(): 3")
       ctr.sql_task_threaded(dbsession,youtube,options.force_refresh)
-      self.close_commentworkerreccord(dbsession,ctr)
+      #self.close_commentworkerreccord(dbsession,ctr) # redundent here
 
 
   def sql_handle_thread(self,dbsession,youtube,options,thread,pintid):
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid)
+    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): START : "+self.yid+" "+str(thread['id']))
     tid=thread['id']
     etag=thread['etag']
     tlc=thread['snippet']['topLevelComment']
     #cid=tlc['id'] # Is same at tid, actually
     if ((pintid) and (tid !=pintid)):
-      ct=get_dbobject_if_exists(YTCommentRecord,tid,dbsession) # FIXME: use comment worker record instead
+      ct=get_dbobject_if_exists(YTCommentWorkerRecord,tid,dbsession)
       if (ct and not options.force_continue): # That cid exists!
         logging.debug("YTThreadWorkerRecord.sql_handle_thread(): Merged with old: "
           +str(tid)+" "+str(self.yid))
@@ -173,15 +182,19 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         self.nexttreadpagetoken=None
         self.lastwork=datetime.datetime.now()
         return False
+    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 2")
     # Still new stuff (or force_continue)
+    #ct=get_dbobject_if_exists(YTCommentWorkerRecord,tid,dbsession)
+    #logging.debug(ct)
     ctr=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
+    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 3")
     if (options.force_continue):
       if (ctr.done and ctr.etag==etag): # Thread didn't changed, as verified by etags
         logging.debug("YTThreadWorkerRecord.sql_handle_thread(): same etags : "+etag)
         return True # We go to next thread, not rewriting anything
                     # FIXME: We should notify we looked a it, and it didn't change (maybe another date field?)
 
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): going on : "+self.yid)
+    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 4 : "+self.yid)
     ctr.set_yid_etag(self.yid,etag,False)
     c=get_dbobject(YTCommentRecord,tid,dbsession)
     c.fill_from_json(tlc,dbsession,False)
@@ -209,22 +222,24 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
     for thread in result['items']:
       if (not self.sql_handle_thread(dbsession,youtube,options,thread,pintid)):
+        logging.debug("YTThreadWorkerRecord.sql_task_threaded(): break")
         return
 
     if ('nextPageToken' in result):
       self.nexttreadpagetoken=result['nextPageToken']
     else:
-      logging.debug("YTThreadWorkerRecord.populate(): end of all threads")
+      logging.debug("YTThreadWorkerRecord.sql_task_threaded(): end of all threads")
       self.firstthreadcid=self.firstthreadcidcandidate
       self.nexttreadpagetoken=None
 
     self.lastwork=datetime.datetime.now()
     print(self.firstthreadcid)
     print(self.nexttreadpagetoken)
-    logging.debug("YTThreadWorkerRecord.populate(): END")
+    logging.debug("YTThreadWorkerRecord.sql_task_threaded(): END")
 
 
   def call_refresh(self,options):
+    logging.debug("YTThreadWorkerRecord.call_refresh(): START : "+self.yid)
     task = Thread(target=self.refresh,args=(options,))
     task.start()
 
@@ -246,11 +261,13 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: "+str(self.firstthreadcid))
       semaphore.acquire()
       o.call_sql_task_threaded(1000,semaphore,options)
-      dbsession.refresh(o) # FIXME: I have to better understand
+      #dbsession.refresh(o) # FIXME: I have to better understand
       time.sleep(1)
+      logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: 3")
     # Ensuring last call is processed before ending
     semaphore.acquire()
     semaphore.release()
+    logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: END")
 
 
 def test_refresh():
