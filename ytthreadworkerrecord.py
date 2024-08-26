@@ -151,7 +151,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
 
     replies=thread['replies']
     comments=replies['comments']
-    logging.debug("YTThreadWorkerRecord.sql_handle_replies(): 2 : "+str(replycount)+" "+str(len(comments)))
+    #logging.debug("YTThreadWorkerRecord.sql_handle_replies(): 2 : "+str(replycount)+" "+str(len(comments)))
     if (len(comments)==replycount): # We have them all
       for jc in comments:
         cid=jc['id']
@@ -159,7 +159,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         c.fill_from_json(jc,dbsession,False)
       self.close_commentworkerreccord(dbsession,ctr)
     else: # There are too many comments in that thread, lets get them now.
-      logging.debug("YTThreadWorkerRecord.sql_handle_replies(): 3")
+      #logging.debug("YTThreadWorkerRecord.sql_handle_replies(): 3")
       ctr.sql_task_threaded(dbsession,youtube,options.force_refresh)
       #self.close_commentworkerreccord(dbsession,ctr) # redundent here
 
@@ -182,24 +182,25 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         self.nexttreadpagetoken=None
         self.lastwork=datetime.datetime.now()
         return False
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 2")
+    #logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 2")
     # Still new stuff (or force_continue)
     #ct=get_dbobject_if_exists(YTCommentWorkerRecord,tid,dbsession)
     #logging.debug(ct)
     ctr=get_dbobject(YTCommentWorkerRecord,tid,dbsession)
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 3")
+    #logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 3")
     if (options.force_continue):
       if (ctr.done and ctr.etag==etag): # Thread didn't changed, as verified by etags
         logging.debug("YTThreadWorkerRecord.sql_handle_thread(): same etags : "+etag)
         return True # We go to next thread, not rewriting anything
                     # FIXME: We should notify we looked a it, and it didn't change (maybe another date field?)
 
-    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 4 : "+self.yid)
+    #logging.debug("YTThreadWorkerRecord.sql_handle_thread(): 4 : "+self.yid)
     ctr.set_yid_etag(self.yid,etag,False)
     c=get_dbobject(YTCommentRecord,tid,dbsession)
     c.fill_from_json(tlc,dbsession,False)
     #print(thread['snippet'])
     self.sql_handle_replies(dbsession,youtube,options,thread,ctr)
+    logging.debug("YTThreadWorkerRecord.sql_handle_thread(): END")
     return True
 
 
@@ -258,16 +259,18 @@ class YTThreadWorkerRecord(SqlRecord,Base):
       dbsession.commit()
     options.force_restart=False
     while not (o.firstthreadcid):
-      logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: "+str(self.firstthreadcid))
+      logging.debug("YTThreadWorkerRecord.refresh(): o.firstthreadcid: "+str(o.firstthreadcid))
       semaphore.acquire()
+      #dbsession.merge(o) # FIXME: I have to better understand
+      dbsession.refresh(o) # FIXME: this is important but I dunno exactly why.
       o.call_sql_task_threaded(1000,semaphore,options)
-      #dbsession.refresh(o) # FIXME: I have to better understand
+      #dbsession.refresh(o) o=dbsession.merge(ytw) # FIXME: I have to better understand
       time.sleep(1)
-      logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: 3")
+      #logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: 3")
     # Ensuring last call is processed before ending
     semaphore.acquire()
     semaphore.release()
-    logging.debug("YTThreadWorkerRecord.refresh(): self.firstthreadcid: END")
+    logging.debug("YTThreadWorkerRecord.refresh(): END")
 
 
 def test_refresh():
