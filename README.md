@@ -26,3 +26,4 @@ That way we can have a fully isolated interface from implementation.
 ### DB access getting too slow.
 Removing as much as possible from useless threads: removing comments, content, etc.
 Just keeping etags.
+Or secondary Table with only relevant threads.
