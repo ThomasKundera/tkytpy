@@ -99,7 +99,7 @@ class YtApi:
     now=datetime.datetime.now()
     Δt=now-self.lastrun
     st=max(self.wait_time-Δt.total_seconds(),0)
-    logging.debug("YtApi.wait_a_bit(): Sleeping "+str(st)+"s")
+    logging.debug("YtApi.wait_a_bit(): Sleeping "+str(st)+"s ( Δt= "+str(Δt.total_seconds())+"s )")
     time.sleep(st) # This impose less than 10.000 calls per day.
 
   def process_request(self,force,request,ytr):
