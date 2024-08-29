@@ -293,9 +293,38 @@ def test_refresh():
   YtQueue().join()
   dbsession.commit()
 
+
+def refresh_all():
+  YtQueue(1)
+  Base.metadata.create_all()
+  dbsession=SqlSingleton().mksession()
+  YtQueue().meanpriority=10000
+  #semaphore=Semaphore(1)
+  #for v in dbsession.query(YTVideoRecord):
+  #  if not v.suspended:
+  #    logging.debug("refresh_all(): Do refresh for "+str(v.yid))
+  #    semaphore.acquire()
+  #    v.call_sql_task_threaded_never_give_up(1000,semaphore)
+  #semaphore.acquire()
+  #semaphore.release()
+
+  for v in dbsession.query(YTVideoRecord):
+    if not v.suspended:
+      options=Options()
+      options.force_restart =True
+      options.force_continue=True
+      options.force_refresh =True
+      options.priority=1000
+      ytw=get_dbobject(YTThreadWorkerRecord,v.yid,dbsession)
+      dbsession.commit()
+      ytw.refresh(options)
+  YtQueue().join()
+  dbsession.commit()
+
+
 # --------------------------------------------------------------------------
 def main():
-  test_refresh()
+  refresh_all()
   return
 
 
