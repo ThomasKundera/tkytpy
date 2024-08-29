@@ -53,7 +53,7 @@ class SqlRecord:
     logging.debug(type(self).__name__+".call_sql_task_threaded(): END")
 
 
-  def call_sql_task_threaded_never_give_up(self,priority=0,semaphore=None):
+  def call_sql_task_threaded_never_give_up(self,priority=0,semaphore=None): # FIXME: rename to "until done"
     logging.debug(type(self).__name__+".call_sql_task_threaded_never_give_up(): START")
     while (not self.call_sql_task_threaded(priority,semaphore)):
       logging.debug(type(self).__name__+".call_sql_task_threaded_never_give_up(): Trying...")
