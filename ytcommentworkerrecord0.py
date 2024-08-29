@@ -85,26 +85,26 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
       # adding it by hand
       comment['snippet']['videoId']=self.yid
       c.fill_from_json(comment,dbsession,False)
-    logging.debug("YTCommentWorkerRecord.process_result():number of processed comments = "+str(cn))
+    logging.debug("YTCommentWorkerRecord.process_result(): number of processed comments = "+str(cn))
     if ('nextPageToken' in result):
-      logging.debug("YTCommentWorkerRecord.process_result(): 2: "+str(result['nextPageToken']))
+      logging.debug("YTCommentWorkerRecord.process_result(): nextPageToken: "+str(result['nextPageToken']))
       self.nextcmtpagetoken=result['nextPageToken']
     else:
-      logging.debug("YTCommentWorkerRecord.process_result(): 3")
+      logging.debug("YTCommentWorkerRecord.process_result(): completed")
       self.completed(dbsession)
     self.lastwork=datetime.datetime.now()
 
   def sql_task_one_chunck(self,dbsession,youtube,force):
     logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): START")
-    logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 1: "+str(self.nextcmtpagetoken))
+    #logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 1: "+str(self.nextcmtpagetoken))
     if (not self.nextcmtpagetoken):
-      logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 2")
+      #logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 2")
       request=youtube.comments().list(
         part='snippet',
         parentId=self.tid,
         maxResults=100)
     else:
-      logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 3")
+      #logging.debug("YTCommentWorkerRecord.sql_task_one_chunck(): 3")
       request=youtube.comments().list(
         part='snippet',
         parentId=self.tid,
