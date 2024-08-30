@@ -23,6 +23,9 @@ Spinners are handling them.
 
 That way we can have a fully isolated interface from implementation.
 
+### Most recent has_me comment from an yid
+Seems useful, but costly.
+
 ### DB access getting too slow.
 Removing as much as possible from useless threads: removing comments, content, etc.
 Just keeping etags.
