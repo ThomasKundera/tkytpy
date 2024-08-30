@@ -227,7 +227,7 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         return
 
     if ('nextPageToken' in result):
-      self.nexttreadpagetoken=result['nextPageToken']
+      self.nexttreadpagetoken=result['nextPageToken'].replace('=','') # FIXME: this is strange but needed.
     else:
       logging.debug("YTThreadWorkerRecord.sql_task_threaded(): end of all threads")
       self.firstthreadcid=self.firstthreadcidcandidate
@@ -309,7 +309,11 @@ def refresh_all():
   #semaphore.release()
 
   for v in dbsession.query(YTVideoRecord):
-    if not v.suspended:
+    #print(v.yid)
+    if (not v.suspended) and (v.yid >= 'xPksF_JFNEI'):
+      #print(v.yid)
+      #break
+      #raise
       options=Options()
       options.force_restart =True
       options.force_continue=True

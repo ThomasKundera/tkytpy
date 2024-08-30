@@ -88,7 +88,7 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
     logging.debug("YTCommentWorkerRecord.process_result(): number of processed comments = "+str(cn))
     if ('nextPageToken' in result):
       logging.debug("YTCommentWorkerRecord.process_result(): nextPageToken: "+str(result['nextPageToken']))
-      self.nextcmtpagetoken=result['nextPageToken']
+      self.nextcmtpagetoken=result['nextPageToken'].replace('=','') # FIXME: this is strange but needed.
     else:
       logging.debug("YTCommentWorkerRecord.process_result(): completed")
       self.completed(dbsession)
