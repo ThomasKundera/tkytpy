@@ -8,6 +8,7 @@ from diskcache import Cache
 
 from tksecrets import google_api_key
 from googleapiclient.discovery import build
+from googleapiclient.errors    import HttpError
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -48,11 +49,15 @@ class YtApiExecute:
     self.args=args
 
   def execute(self,force=None):
-    try:
-      return self.what(force,self.args)
-    except HttpError:
-      logging.debug("YtApiExecute.execute(): ERROR")
-      return None
+    retry=0
+    while (retry<10):
+      retry+=1
+      try:
+        return self.what(force,self.args)
+      except HttpError:
+        logging.debug("YtApiExecute.execute(): ERROR")
+        time.sleep(30)
+    return None
 
 class YtApiWork:
   def __init__(self,ytapi):
@@ -102,17 +107,30 @@ class YtApi:
     logging.debug("YtApi.wait_a_bit(): Sleeping "+str(st)+"s ( Δt= "+str(Δt.total_seconds())+"s )")
     time.sleep(st) # This impose less than 10.000 calls per day.
 
+
+  def do_process_request(self,force,request,ytr,key):
+    self.wait_a_bit()
+    answer=ytr.execute()
+    self.lastrun=datetime.datetime.now()
+    self.cache.set(key,request,answer)
+    return answer
+
   def process_request(self,force,request,ytr):
     logging.debug("YtApi.process_request(): START")
     key=json.loads(ytr.to_json())['uri']
     if not force:
       answer=self.cache.answer(key)
       if (answer): return answer
-    self.wait_a_bit()
-    answer=ytr.execute()
-    self.lastrun=datetime.datetime.now()
-    self.cache.set(key,request,answer)
-    return answer
+    retry=0
+    while retry <10:
+      try:
+        answer=self.do_process_request(force,request,ytr,key)
+        return answer
+      except TimeoutError:
+        logging.debug("YtApi.process_request(): Timeout")
+        time.sleep(30) # When self.wait_time is low, it's usefull to anyway wait some time.
+      retry+=1
+    raise # No answer,better to kill the thread.
 
   def execute_commentthread_list(self,force,request):
     ytr=self.youtube.commentThreads().list(**request)
@@ -136,9 +154,21 @@ class YtApi:
     return self.ytavideos
 
 
+def teststuff():
+  uri="https://youtube.googleapis.com/youtube/v3/commentThreads?part=id%2Csnippet%2Creplies&videoId=xPksF_JFNEI&pageToken=Z2V0X25ld2VzdF9maXJzdC0tQ2dnSWdBUVZGN2ZST0JJRkNJZ2dHQUFTQlFpb0lCZ0FFZ1VJaVNBWUFCSUZDSjBnR0FFU0JRaUhJQmdBR0FBaURnb01DT080d01RRkVJQ3c3S2NC&maxResults=100&key=AIzaSyBehkZDTzG8E4dnVHKRzCN_nGPU6gt83Hk&alt=json"
+  cache=DataCache()
+  key=uri
+  answer=cache.answer(key)
+  npt=answer['nextPageToken']
+  print(npt)
+  uri2="https://youtube.googleapis.com/youtube/v3/commentThreads?part=id%2Csnippet%2Creplies&videoId=xPksF_JFNEI&pageToken="+npt+"&maxResults=100&key=AIzaSyBehkZDTzG8E4dnVHKRzCN_nGPU6gt83Hk&alt=json"
+  print (uri2)
+
 # --------------------------------------------------------------------------
 def main():
   logging.debug("ytapi test: START")
+  teststuff()
+  return
   someid='iphcyNWFD10'
   yta=YtApi()
   for i in range(3):
