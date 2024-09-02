@@ -307,10 +307,14 @@ def refresh_all():
   #    v.call_sql_task_threaded_never_give_up(1000,semaphore)
   #semaphore.acquire()
   #semaphore.release()
-
+  semaphore=Semaphore(1)
   for v in dbsession.query(YTVideoRecord):
     #print(v.yid)
-    if (not v.suspended) and (v.yid >= 'xPksF_JFNEI'):
+    if (not v.suspended): # and (v.yid >= 'xPksF_JFNEI'):
+      semaphore.acquire()
+      v.call_sql_task_threaded_never_give_up(1000,semaphore)
+      semaphore.acquire()
+      semaphore.release()
       #print(v.yid)
       #break
       #raise
