@@ -121,7 +121,7 @@ function populateVideoList(obj) {
 
 
   // Display all ytvlist, sorted by mostrecentme
-  ytvlist.sort(function(a,b) {
+  ytvlist.sort(function compare(a,b) {
     return b.mostrecentme-a.mostrecentme;
   });
   // FIXME: add a filter for suspended videos

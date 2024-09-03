@@ -7,7 +7,6 @@ from sqlalchemy import case, or_, and_
 
 from ytcommentworkerrecord  import YTCommentWorkerRecord
 from ytvideorecord          import YTVideoRecord
-from ytcommentthread        import YTCommentThread
 from sqlsingleton import SqlSingleton, Base, get_dbobject, get_dbsession
 
 import logging, sys
@@ -26,10 +25,8 @@ class YTThreadsEvaluationThread:
     self.spint.start()
     logging.debug("YTThreadsEvaluationThread.run: END")
 
-  def do_spin(self,dbsession,chunck_size):
-    startdate=datetime.datetime.now()
-    chunck_size=100
-    tteval=dbsession.query(YTCommentWorkerRecord).join(
+  def default_chunk(self,dbsession,chunck_size):
+    return dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTVideoRecord.valid == True,
              YTVideoRecord.suspended ==False,
@@ -37,6 +34,22 @@ class YTThreadsEvaluationThread:
              YTCommentWorkerRecord.done==True)
         ).order_by(
           (YTCommentWorkerRecord.lastcompute-YTCommentWorkerRecord.lastwork)/YTVideoRecord.monitor).limit(chunck_size)
+
+  def value_thread_chunck(self,dbsession,chunck_size):
+    return dbsession.query(YTCommentWorkerRecord).join(
+      YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
+        and_(YTCommentWorkerRecord.done==True,
+             YTCommentWorkerRecord.interest_level>0,
+             YTVideoRecord.valid == True,
+             YTVideoRecord.suspended ==False,
+             YTVideoRecord.monitor>0)
+        ).order_by(
+          (YTCommentWorkerRecord.lastcompute-YTCommentWorkerRecord.lastwork)/YTVideoRecord.monitor).limit(chunck_size)
+
+  def do_spin(self,dbsession,chunck_size):
+    startdate=datetime.datetime.now()
+    chunck_size=100
+    tteval=self.value_thread_chunck(dbsession,chunck_size)
     count=0
     # FIXME: date at which recompute is meaningful
     lastcompute=tteval[0].lastcompute
@@ -52,7 +65,7 @@ class YTThreadsEvaluationThread:
         continue
       logging.debug("YTThreadsEvaluationThread.do_spin(): lastcompute: "+str(t.lastcompute))
       # We have to commit, otherwise we risks conflicts.
-      YTCommentThread(t.tid,dbsession).set_interest(True)
+      t.set_interest(dbsession)
       count+=1
     if (count):
       Δt=(datetime.datetime.now()-startdate).total_seconds()

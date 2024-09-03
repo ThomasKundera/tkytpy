@@ -99,8 +99,11 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
       if (most_recent_me):
         v=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
         # FIXME: if not v? (shouldn't be)
-        if (most_recent_me>v.mostrecentme):
-          v.most_recent_me=mostrecentme
+        if (v.mostrecentme):
+          if (most_recent_me>v.mostrecentme):
+            v.mostrecentme=most_recent_me
+        else:
+          v.mostrecentme=most_recent_me
     return interest_level
 
   def set_interest(self,dbsession,commit=True):
