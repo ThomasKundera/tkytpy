@@ -120,9 +120,9 @@ function populateVideoList(obj) {
   mvldiv.appendChild(mdv);
 
 
-  // Display all ytvlist, sorted by lastinterraction
+  // Display all ytvlist, sorted by mostrecentme
   ytvlist.sort(function(a,b) {
-    return b.lastinteraction-a.lastinteraction;
+    return b.mostrecentme-a.mostrecentme;
   });
   // FIXME: add a filter for suspended videos
   // FIXME: add a filter for valid videos
