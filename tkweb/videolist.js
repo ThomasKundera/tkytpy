@@ -15,7 +15,8 @@ function create_input(type,name,id) {
 }
 
 function populate_video(div,ytv) {
-  console.log(ytv.yid);
+  //console.log(ytv.yid);
+  console.error(ytv.mostrecentme);
   const mdv = document.createElement("div");
   cls='video';
   ytv.valid     = (ytv.valid.toLowerCase()     === "true");
@@ -80,7 +81,11 @@ function populate_video(div,ytv) {
 
   const mdm = document.createElement("div");
   mdm.appendChild(create_a("/video.html?yid="+ytv.yid,ytv.title));
-  mdm.appendChild(create_p(ytv.yid))
+  //if (! ytv.mostrecentme) {
+  //  ytv.mostrecentme="None";
+  //};
+  mdm.appendChild(create_p(ytv.mostrecentme));
+  //mdm.appendChild(create_p(ytv.yid)+" "+ytv.mostrecentme)
   const mds = document.createElement("div");
   const s="Number of comments: "
     +ytv.recordedcommentcount+"/"+ytv.commentcount;
@@ -120,13 +125,36 @@ function populateVideoList(obj) {
   mvldiv.appendChild(mdv);
 
 
+  yl=new Array()
+  for (const ytv of ytvlist) {
+    yl.push(ytv)
+  }
+
   // Display all ytvlist, sorted by mostrecentme
-  ytvlist.sort(function compare(a,b) {
-    return b.mostrecentme-a.mostrecentme;
+  yl.sort(function(a,b) {
+    if (a.mostrecentme == "None") {
+      if (b.mostrecentme == "None") {
+        return 0;
+      };
+      return -1;
+    };
+    if (b.mostrecentme == "None") {
+      return 1;
+    };
+
+    if (a.mostrecentme == b.mostrecentme) {
+      return 0;
+    };
+    if (a.mostrecentme>b.mostrecentme) {
+      return 1;
+    }
+    return -1;
   });
+  yl.reverse();
+  //console.error("________________________________");
   // FIXME: add a filter for suspended videos
   // FIXME: add a filter for valid videos
-  for (const ytv of ytvlist) {
+  for (const ytv of yl) {
     populate_video(mvldiv,ytv)
   }
   videodiv.appendChild(mvldiv);
