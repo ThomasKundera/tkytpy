@@ -308,7 +308,7 @@ def refresh_all():
   #semaphore.acquire()
   #semaphore.release()
   semaphore=Semaphore(1)
-  for v in dbsession.query(YTVideoRecord):
+  for v in dbsession.query(YTVideoRecord).order_by(YTVideoRecord.mostrecentme.desc()):
     #print(v.yid)
     if (not v.suspended): # and (v.yid >= 'xPksF_JFNEI'):
       semaphore.acquire()

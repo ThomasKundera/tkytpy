@@ -12,7 +12,7 @@ class YTCommentRecord(YTCommentRecord0):
   def __init__(self,dbsession,cid,commit=True):
     super().__init__(dbsession,cid,commit)
 
-  def from_me(self,dbsession=None):
+  def from_me(self,dbsession=None):  # FIXME: put a simple grep here instead of a DB call
     a=get_dbobject_if_exists(YTAuthorRecord,self.author,dbsession)
     if not a:
       # FIXME: reload author, which likely means reloading the thread

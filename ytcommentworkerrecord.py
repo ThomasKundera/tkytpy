@@ -24,7 +24,6 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
     logging.debug("YTCommentWorkerRecord.__init__("+str(tid)+"): START")
     super().__init__(dbsession,tid,commit)
 
-
   def get_comment_list(self,dbsession,with_tlc=False):
     print("GARP: "+str(dbsession))
     #with_tlc=False
@@ -96,11 +95,17 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
           self.ignore_before=most_recent_me
         self.most_recent_reply=most_recent_reply
       self.lastcompute=datetime.datetime.now()
+      # dealing with video mostrecentme:
+      if (most_recent_me):
+        v=get_dbobject_if_exists(YTVideoRecord,self.yid,dbsession)
+        # FIXME: if not v? (shouldn't be)
+        if (most_recent_me>v.mostrecentme):
+          v.most_recent_me=mostrecentme
     return interest_level
 
   def set_interest(self,dbsession,commit=True):
     logging.debug("YTCommentWorkerRecord.set_interest(): START")
-    level=self.compute_interest(dbsession,True)
+    self.compute_interest(dbsession,True)
     #cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,dbsession)
     #self.compute_interest(cwr)
     #self.interest_level=level

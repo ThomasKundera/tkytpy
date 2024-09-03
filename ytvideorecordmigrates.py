@@ -10,7 +10,7 @@ import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 class YTVideoRecord7(SqlRecord,Base):
-  __tablename__ = 'ytvideos0_7'
+  __tablename__ = 'ytvideos0_8'
   yid               = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
   valid             = sqlalchemy.Column(sqlalchemy.Boolean)
   populated         = sqlalchemy.Column(sqlalchemy.Boolean)
@@ -22,6 +22,7 @@ class YTVideoRecord7(SqlRecord,Base):
   oldcommentcount   = sqlalchemy.Column(sqlalchemy.Integer)
   lastrefreshed     = sqlalchemy.Column(sqlalchemy.DateTime)
   oldrefreshed      = sqlalchemy.Column(sqlalchemy.DateTime)
+  lastinterract     = sqlalchemy.Column(sqlalchemy.DateTime)
   monitor           = sqlalchemy.Column(sqlalchemy.Integer)
   suspended         = sqlalchemy.Column(sqlalchemy.Boolean)
   
@@ -37,10 +38,10 @@ def init_db():
 
 def migrates(dbsession):
   n=0
-  for v7 in dbsession.query(YTVideoRecord7):
-    v8=get_dbobject(YTVideoRecord,v7.yid,dbsession,False)
-    dbsession.add(v8)
-    v8.copy_from(v7)
+  for vold in dbsession.query(YTVideoRecord8):
+    vnew=get_dbobject(YTVideoRecord,v8.yid,dbsession,False)
+    dbsession.add(vnew)
+    vnew.copy_from(vold)
     n+=1
     if (not n % 100):
       print (" ================== ROW "+str(n)+" PROCESSED ============")
