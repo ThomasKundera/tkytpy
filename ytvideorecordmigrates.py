@@ -9,7 +9,7 @@ from sqlsingleton import SqlSingleton, Base, get_dbobject
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-class YTVideoRecord7(SqlRecord,Base):
+class YTVideoRecord8(SqlRecord,Base):
   __tablename__ = 'ytvideos0_8'
   yid               = sqlalchemy.Column(sqlalchemy.Unicode(12),primary_key=True)
   valid             = sqlalchemy.Column(sqlalchemy.Boolean)
@@ -39,7 +39,7 @@ def init_db():
 def migrates(dbsession):
   n=0
   for vold in dbsession.query(YTVideoRecord8):
-    vnew=get_dbobject(YTVideoRecord,v8.yid,dbsession,False)
+    vnew=get_dbobject(YTVideoRecord,vold.yid,dbsession,False)
     dbsession.add(vnew)
     vnew.copy_from(vold)
     n+=1
