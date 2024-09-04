@@ -84,8 +84,8 @@ function populate_video(div,ytv) {
   //if (! ytv.mostrecentme) {
   //  ytv.mostrecentme="None";
   //};
-  mdm.appendChild(create_p(ytv.mostrecentme));
-  //mdm.appendChild(create_p(ytv.yid)+" "+ytv.mostrecentme)
+  //mdm.appendChild(create_p(ytv.mostrecentme));
+  mdm.appendChild(create_p(ytv.yid+" "+ytv.mostrecentme))
   const mds = document.createElement("div");
   const s="Number of comments: "
     +ytv.recordedcommentcount+"/"+ytv.commentcount;
