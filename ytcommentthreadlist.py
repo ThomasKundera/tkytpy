@@ -24,27 +24,31 @@ class YTCommentThreadList():
     self.dbsession=SqlSingleton().mksession()
     return
 
-  def get_oldest_thread_of_interest(self):
+  def get_oldest_thread_of_interest(self,nb=1):
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTCommentWorkerRecord.interest_level != 0 ,
              YTVideoRecord.valid == True,
              YTVideoRecord.suspended ==False)
-        ).order_by(YTCommentWorkerRecord.most_recent_me).limit(1)
+        ).order_by(YTCommentWorkerRecord.most_recent_me).limit(nb)
     if (threads.count()==0):
       return None
-    return threads[0]
+    if (nb==1):
+      return threads[0]
+    return threads
 
-  def get_newest_thread_of_interest(self):
+  def get_newest_thread_of_interest(self,nb=1):
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTCommentWorkerRecord.interest_level != 0,
              YTVideoRecord.valid == True,
              YTVideoRecord.suspended ==False)
-        ).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(1)
+        ).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(nb)
     if (threads.count()==0):
       return None
-    return threads[0]
+    if (nb==1):
+      return threads[0]
+    return threads
 
   def get_thread_from_ytcw(self,ytcw):
     if (ytcw):
