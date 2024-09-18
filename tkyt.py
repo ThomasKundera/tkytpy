@@ -24,6 +24,13 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
     if (yid):
       self.videos.add_from_yid(yid)
 
+  def get_video(self,yid):
+    vd=self.videos.get_one_video_dict(yid)
+    ccount=self.commentthreadlist.get_commentcount_for_video(yid)
+    vd['recordedcommentcount']=ccount
+    return vd
+
+
   def get_video_list(self):
     vl=self.videos.get_video_dict()
     ccount=self.commentthreadlist.get_commentcount_per_video()

@@ -50,6 +50,8 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     cmd=js['command']
     if cmd == 'get_video_list':
       return self.get_video_list()
+    if cmd == 'get_video':
+      return self.get_video(js['yid'])
     if cmd == 'add_video':
       return self.add_video(js['ytid']) # FIXME: yid
     if cmd == 'video_action':
@@ -73,6 +75,9 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     return { 'status': 'OK' }
 
   def get_video_list(self):
+    return self.tkyt.get_video(yid) # FIXME input sanitization
+
+  def get_video(self,yid):
     return self.tkyt.get_video_list()
 
   def video_action(self,js):

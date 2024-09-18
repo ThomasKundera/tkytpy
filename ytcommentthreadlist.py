@@ -83,6 +83,9 @@ class YTCommentThreadList():
       # A commit would be needed after the command ran.
       # A callback would be nice
 
+ def get_commentcount_for_video(self,yid):
+    d=self.dbsession.query(YTCommentRecord).filter(YTCommentRecord.yid == yid).count()
+    return d
 
   def get_commentcount_per_video(self):
     res=self.dbsession.query(YTCommentRecord.yid, func.count(YTCommentRecord.yid)).group_by(YTCommentRecord.yid).all()

@@ -41,6 +41,12 @@ class YTVideoList:
         l.append(v.to_dict())
     return  {'ytvlist': l}
 
+  def get_one_video_dict(self,yid):
+    dbsession=SqlSingleton().mksession()
+    v=get_dbobject_if_exists(YTVideo,yid,dbsession)
+    if not v: return {}
+    return v.to_dict()
+
   def checkbox_action(self,action,yid,checked):
     dbsession=SqlSingleton().mksession()
     v=get_dbobject_if_exists(YTVideo,yid,dbsession)
