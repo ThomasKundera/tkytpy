@@ -29,6 +29,16 @@ function populate_comment(refdiv,tlc) {
 }
 
 
+function populate_number_of_thread(obj) {
+  const notdiv = document.querySelector("#nbthreads");
+  notdiv.innerHTML = "";
+
+  const p0 = document.createElement("p");
+  p0.textContent="... and "+obj.nb+" more threads of interest..."
+  notdiv.appendChild(p0)
+}
+
+
 function populate_oldest_thread(obj) {
   const oldest_thread_div = document.querySelector("#oldestthreaddiv");
   populate_comment(oldest_thread_div,obj.tlc);
@@ -74,8 +84,28 @@ async function update_newest_thread_of_interest() {
     console.error(e);
   }
 }
+
+async function update_number_of_thread_of_interest() {
+  try {
+    const response = await fetch("http://localhost:8000/post", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: ('{ "command": "get_number_of_thread_of_interest" }')
+    });
+    const cidtext = await response.text();
+    const cidjson=JSON.parse(cidtext);
+    populate_number_of_thread(cidjson);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 // On document load
 window.addEventListener("load", function() {
   update_oldest_thread_of_interest();
+  update_number_of_thread_of_interest();
   update_newest_thread_of_interest();
 });
