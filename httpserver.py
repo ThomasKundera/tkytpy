@@ -51,13 +51,15 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     if cmd == 'get_video_list':
       return self.get_video_list()
     if cmd == 'get_video':
-      return self.get_video(js['yid'])
+      return self.get_video(js['ytid'])
     if cmd == 'add_video':
       return self.add_video(js['ytid']) # FIXME: yid
     if cmd == 'video_action':
       return self.video_action(js)
     if cmd == 'get_main_stuff':
       return self.get_main_stuff()
+    if cmd == 'get_number_of_thread_of_interest':
+      return self.get_number_of_thread_of_interest()
     if cmd == 'get_oldest_thread_of_interest':
       return self.get_oldest_thread_of_interest()
     if cmd == 'get_newest_thread_of_interest':
@@ -75,10 +77,10 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     return { 'status': 'OK' }
 
   def get_video_list(self):
-    return self.tkyt.get_video(yid) # FIXME input sanitization
+    return self.tkyt.get_video_list() # FIXME input sanitization
 
   def get_video(self,yid):
-    return self.tkyt.get_video_list()
+    return self.tkyt.get_video_list(yid)
 
   def video_action(self,js):
     action=js['action']
@@ -94,6 +96,9 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     if (action == 'refreshallmetadata'):
       return self.tkyt.video_refresh_all_action()
     return {}
+
+  def get_number_of_thread_of_interest(self):
+    return self.tkyt.get_number_of_thread_of_interest()
 
   def get_oldest_thread_of_interest(self):
     return self.tkyt.get_oldest_thread_of_interest()
