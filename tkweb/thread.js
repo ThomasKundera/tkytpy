@@ -46,6 +46,8 @@ function populate_thread(obj) {
   thread_div.innerHTML = "";
   const tlc = obj.tlc;
 
+
+
   populate_top_buttons(thread_div,tlc);
 
   populate_comment(thread_div,tlc);
