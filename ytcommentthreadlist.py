@@ -24,6 +24,10 @@ class YTCommentThreadList():
     self.dbsession=SqlSingleton().mksession()
     return
 
+  def get_number_of_thread_of_interest(self):
+    nb=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).count()
+    return {'nb': nb}
+
   def get_oldest_thread_of_interest(self,nb=1):
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
@@ -83,7 +87,7 @@ class YTCommentThreadList():
       # A commit would be needed after the command ran.
       # A callback would be nice
 
- def get_commentcount_for_video(self,yid):
+  def get_commentcount_for_video(self,yid):
     d=self.dbsession.query(YTCommentRecord).filter(YTCommentRecord.yid == yid).count()
     return d
 
