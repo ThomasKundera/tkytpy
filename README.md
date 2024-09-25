@@ -22,6 +22,7 @@ Priority booster: 0-10:
 ### Summary, by importance
   - Enhancement of UI
     - 3 oldest and newest instead of one
+    - Ability to "suspend" a thread for some time (a week?)
     - Data about video with threads
     - User image
   - Shadow banning check
