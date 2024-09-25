@@ -34,6 +34,12 @@ div.oldnewdiv {
     border-color: #FF00AA;
     padding: 5px;
 }
+div.tidcomment {
+    border: 1px solid;
+    border-color: black;
+    padding: 1px;
+}
+
 
 div.comment {
     display: flex;

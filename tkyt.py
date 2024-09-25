@@ -55,15 +55,15 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
   def video_refresh_all_action(self):
     return self.videos.refresh_all()
 
-  def get_number_of_thread_of_interest(self):
-    return self.commentthreadlist.get_number_of_thread_of_interest()
+  def get_number_of_threads_of_interest(self):
+    return self.commentthreadlist.get_number_of_threads_of_interest()
 
 
-  def get_newest_thread_of_interest(self):
-    return self.commentthreadlist.get_newest_thread_of_interest_as_dict()
+  def get_newest_threads_of_interest(self,nb=1):
+    return self.commentthreadlist.get_newest_threads_of_interest_as_dict(nb)
 
-  def get_oldest_thread_of_interest(self):
-    return self.commentthreadlist.get_oldest_thread_of_interest_as_dict()
+  def get_oldest_threads_of_interest(self,nb=1):
+    return self.commentthreadlist.get_oldest_threads_of_interest_as_dict(nb)
 
   def get_thread(self,tid):
     return self.commentthreadlist.get_thread_dict(tid)

@@ -1,6 +1,7 @@
 
 function populate_comment(refdiv,tlc) {
-  refdiv.innerHTML = "";
+  // Print tlc to console:
+  console.log(tlc);
 
   const div = document.createElement("div");
   div.setAttribute('class','tidcomment');
@@ -29,7 +30,7 @@ function populate_comment(refdiv,tlc) {
 }
 
 
-function populate_number_of_thread(obj) {
+function populate_number_of_threads(obj) {
   const notdiv = document.querySelector("#nbthreads");
   notdiv.innerHTML = "";
 
@@ -39,17 +40,23 @@ function populate_number_of_thread(obj) {
 }
 
 
-function populate_oldest_thread(obj) {
+function populate_oldest_threads(obj) {
   const oldest_thread_div = document.querySelector("#oldestthreaddiv");
-  populate_comment(oldest_thread_div,obj.tlc);
+  oldest_thread_div.innerHTML = "";
+  for (const cmt of obj.tlist) {
+    populate_comment(oldest_thread_div,cmt.tlc);
+  }
 }
 
-function populate_newest_thread(obj) {
+function populate_newest_threads(obj) {
   const newest_thread_div = document.querySelector("#newestthreaddiv");
-  populate_comment(newest_thread_div,obj.tlc);
+  newest_thread_div.innerHTML = "";
+  for (const cmt of obj.tlist) {
+    populate_comment(newest_thread_div,cmt.tlc);
+  }
 }
 
-async function update_oldest_thread_of_interest() {
+async function update_oldest_threads_of_interest() {
   try {
     const response = await fetch("http://localhost:8000/post", {
       method: 'POST',
@@ -57,17 +64,20 @@ async function update_oldest_thread_of_interest() {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: ('{ "command": "get_oldest_thread_of_interest" }')
+      body: ('{ "command": "get_oldest_threads_of_interest" }')
     });
     const cidtext = await response.text();
+     // Debug print the received text
+     console.log(cidtext);
+
     const cidjson=JSON.parse(cidtext);
-    populate_oldest_thread(cidjson);
+    populate_oldest_threads(cidjson);
   } catch (e) {
     console.error(e);
   }
 }
 
-async function update_newest_thread_of_interest() {
+async function update_newest_threads_of_interest() {
   try {
     const response = await fetch("http://localhost:8000/post", {
       method: 'POST',
@@ -75,17 +85,17 @@ async function update_newest_thread_of_interest() {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: ('{ "command": "get_newest_thread_of_interest" }')
+      body: ('{ "command": "get_newest_threads_of_interest" }')
     });
     const cidtext = await response.text();
     const cidjson=JSON.parse(cidtext);
-    populate_newest_thread(cidjson);
+    populate_newest_threads(cidjson);
   } catch (e) {
     console.error(e);
   }
 }
 
-async function update_number_of_thread_of_interest() {
+async function update_number_of_threads_of_interest() {
   try {
     const response = await fetch("http://localhost:8000/post", {
       method: 'POST',
@@ -93,11 +103,12 @@ async function update_number_of_thread_of_interest() {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: ('{ "command": "get_number_of_thread_of_interest" }')
+      body: ('{ "command": "get_number_of_threads_of_interest" }')
     });
     const cidtext = await response.text();
     const cidjson=JSON.parse(cidtext);
-    populate_number_of_thread(cidjson);
+   
+    populate_number_of_threads(cidjson);
   } catch (e) {
     console.error(e);
   }
@@ -105,7 +116,7 @@ async function update_number_of_thread_of_interest() {
 
 // On document load
 window.addEventListener("load", function() {
-  update_oldest_thread_of_interest();
-  update_number_of_thread_of_interest();
-  update_newest_thread_of_interest();
+  update_oldest_threads_of_interest();
+  update_number_of_threads_of_interest();
+  update_newest_threads_of_interest();
 });

@@ -24,11 +24,11 @@ class YTCommentThreadList():
     self.dbsession=SqlSingleton().mksession()
     return
 
-  def get_number_of_thread_of_interest(self):
+  def get_number_of_threads_of_interest(self):
     nb=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).count()
     return {'nb': nb}
 
-  def get_oldest_thread_of_interest(self,nb=1):
+  def get_oldest_threads_of_interest(self,nb=1):
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTCommentWorkerRecord.interest_level != 0 ,
@@ -37,11 +37,9 @@ class YTCommentThreadList():
         ).order_by(YTCommentWorkerRecord.most_recent_me).limit(nb)
     if (threads.count()==0):
       return None
-    if (nb==1):
-      return threads[0]
     return threads
 
-  def get_newest_thread_of_interest(self,nb=1):
+  def get_newest_threads_of_interest(self,nb=1):
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTCommentWorkerRecord.interest_level != 0,
@@ -50,14 +48,20 @@ class YTCommentThreadList():
         ).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(nb)
     if (threads.count()==0):
       return None
-    if (nb==1):
-      return threads[0]
     return threads
 
   def get_thread_from_ytcw(self,ytcw):
     if (ytcw):
       return ytcw.to_dict(self.dbsession)
     return {}
+  
+  def convert_threadlist_to_dict(self,tl):
+    d={}
+    lst=[]
+    for t in tl:
+      lst.append(self.get_thread_from_ytcw(t))
+    d['tlist']=lst
+    return d
 
   def get_thread(self,tid):
     t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
@@ -67,13 +71,13 @@ class YTCommentThreadList():
     t=self.get_thread(tid)
     return self.get_thread_from_ytcw(t)
 
-  def get_oldest_thread_of_interest_as_dict(self):
-    t=self.get_oldest_thread_of_interest()
-    return self.get_thread_from_ytcw(t)
+  def get_oldest_threads_of_interest_as_dict(self,nb=1):
+    tl=self.get_oldest_threads_of_interest(nb)
+    return self.convert_threadlist_to_dict(tl)
 
-  def get_newest_thread_of_interest_as_dict(self):
-    t=self.get_newest_thread_of_interest()
-    return self.get_thread_from_ytcw(t)
+  def get_newest_threads_of_interest_as_dict(self,nb=1):
+    tl=self.get_newest_threads_of_interest(nb)
+    return self.convert_threadlist_to_dict(tl)
 
   def force_refresh_thread(self,tid):
     t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)

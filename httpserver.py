@@ -58,12 +58,12 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.video_action(js)
     if cmd == 'get_main_stuff':
       return self.get_main_stuff()
-    if cmd == 'get_number_of_thread_of_interest':
-      return self.get_number_of_thread_of_interest()
-    if cmd == 'get_oldest_thread_of_interest':
-      return self.get_oldest_thread_of_interest()
-    if cmd == 'get_newest_thread_of_interest':
-      return self.get_newest_thread_of_interest()
+    if cmd == 'get_number_of_threads_of_interest':
+      return self.get_number_of_threads_of_interest()
+    if cmd == 'get_oldest_threads_of_interest':
+      return self.get_oldest_threads_of_interest()
+    if cmd == 'get_newest_threads_of_interest':
+      return self.get_newest_threads_of_interest()
     if cmd == 'get_thread':
       return self.get_thread(js['tid'])
     if cmd == 'force_refresh_thread':
@@ -97,14 +97,14 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
       return self.tkyt.video_refresh_all_action()
     return {}
 
-  def get_number_of_thread_of_interest(self):
-    return self.tkyt.get_number_of_thread_of_interest()
+  def get_number_of_threads_of_interest(self):
+    return self.tkyt.get_number_of_threads_of_interest()
 
-  def get_oldest_thread_of_interest(self):
-    return self.tkyt.get_oldest_thread_of_interest()
+  def get_oldest_threads_of_interest(self):
+    return self.tkyt.get_oldest_threads_of_interest(3)
 
-  def get_newest_thread_of_interest(self):
-    return self.tkyt.get_newest_thread_of_interest()
+  def get_newest_threads_of_interest(self):
+    return self.tkyt.get_newest_threads_of_interest(3)
 
   def get_thread(self,tid):
     return self.tkyt.get_thread(tid)
