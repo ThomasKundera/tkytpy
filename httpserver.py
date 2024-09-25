@@ -101,10 +101,10 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     return self.tkyt.get_number_of_threads_of_interest()
 
   def get_oldest_threads_of_interest(self):
-    return self.tkyt.get_oldest_threads_of_interest(3)
+    return self.tkyt.get_oldest_threads_of_interest(5)
 
   def get_newest_threads_of_interest(self):
-    return self.tkyt.get_newest_threads_of_interest(3)
+    return self.tkyt.get_newest_threads_of_interest(5)
 
   def get_thread(self,tid):
     return self.tkyt.get_thread(tid)
