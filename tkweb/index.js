@@ -13,11 +13,11 @@ function populate_comment(refdiv,tlc) {
   div.appendChild(p1)
   const ma0 = document.createElement("a");
   ma0.setAttribute('href',"/thread.html?tid="+tlc.cid)
-  ma0.textContent="Thread"
+  ma0.textContent="Thread "
   div.appendChild(ma0)
   const ma1 = document.createElement("a");
   ma1.setAttribute('href',"https://www.youtube.com/watch?v="+tlc.yid+"&lc="+tlc.cid);
-  ma1.textContent="Online link";
+  ma1.textContent=" Online link";
   div.appendChild(ma1);
   const p2 = document.createElement("p");
   p2.textContent=tlc.cid
