@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import logging, sys
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
 import tksingleton
 
 from ytvideolist           import YTVideoList
@@ -88,6 +91,10 @@ def main():
   tk.setup()
   #tk.add_video("https://www.youtube.com/watch?v=LaVip3J__8Y")
   #return
+  
+  tk.force_refresh_thread('UgxJPjS09BYJeA6ucnV4AaABAg')
+
+  return
   print(tk.get_oldest_thread_of_interest())
   print(tk.get_newest_thread_of_interest())
 
