@@ -23,7 +23,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class YTCommentWorkerRecord0(SqlRecord,Base):
-  __tablename__            = 'ytcommentworkerrecord0_7'
+  __tablename__            = 'ytcommentworkerrecord0_8'
   tid                      = sqlalchemy.Column(sqlalchemy.Unicode(50),primary_key=True)
   yid                      = sqlalchemy.Column(sqlalchemy.Unicode(50))
   lastwork                 = sqlalchemy.Column(sqlalchemy.DateTime)
@@ -32,6 +32,7 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
   most_recent_me           = sqlalchemy.Column(sqlalchemy.DateTime)
   most_recent_reply        = sqlalchemy.Column(sqlalchemy.DateTime)
   ignore_before            = sqlalchemy.Column(sqlalchemy.DateTime)
+  ignore_until             = sqlalchemy.Column(sqlalchemy.DateTime)
   lastcompute              = sqlalchemy.Column(sqlalchemy.DateTime)
   etag                     = sqlalchemy.Column(sqlalchemy.Unicode(100))
   nextcmtpagetoken         = sqlalchemy.Column(sqlalchemy.Unicode(200))
@@ -62,7 +63,7 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
     self.done            =False
     self.interest_level  =0
     self.lastcompute     =None
-
+    self.ignore_until    = None
 
   def completed(self,dbsession):
     logging.debug("YTCommentWorkerRecord.completed(): WARNING: placeholder, should never be called")
