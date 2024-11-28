@@ -145,6 +145,11 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
       self.sql_task_one_chunck(dbsession,youtube,force)
     logging.debug("YTCommentWorkerRecord.sql_task_threaded: END")
 
+  def suspend(self,dbsession,duration, commit=True):
+    self.ignore_until=datetime.datetime.now()+datetime.timedelta(seconds=duration)
+    if (commit):
+      dbsession.commit()
+
 def import_from_file(dbsession):
   f=open('parents-id.txt','rt')
   for line in f.readlines():
@@ -160,6 +165,8 @@ def import_from_file(dbsession):
         ycw.set_yid_etag(yid,None,False)
 
   dbsession.commit()
+
+
 
 #  --------------------------------------------------------------------------
 def main():

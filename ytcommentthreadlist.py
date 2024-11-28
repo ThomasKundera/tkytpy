@@ -28,7 +28,8 @@ class YTCommentThreadList():
     nb=self.dbsession.query(YTCommentWorkerRecord).filter(YTCommentWorkerRecord.interest_level != 0).count()
     return {'nb': nb}
 
-  def get_oldest_threads_of_interest(self,nb=1):
+  def get_oldest_threads_of_interest_old(self,nb=1):
+    now=datetime.datetime.now()
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTCommentWorkerRecord.interest_level != 0 ,
@@ -38,6 +39,21 @@ class YTCommentThreadList():
     if (threads.count()==0):
       return None
     return threads
+
+  def get_oldest_threads_of_interest(self,nb=1):
+    now=datetime.datetime.now()
+    threads=self.dbsession.query(YTCommentWorkerRecord).join(
+      YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
+        and_(YTCommentWorkerRecord.interest_level != 0 ,
+             or_ (YTCommentWorkerRecord.ignore_until == None,
+                  YTCommentWorkerRecord.ignore_until < now),
+             YTVideoRecord.valid == True,
+             YTVideoRecord.suspended ==False)
+        ).order_by(YTCommentWorkerRecord.most_recent_me).limit(nb)
+    if (threads.count()==0):
+      return None
+    return threads
+
 
   def get_newest_threads_of_interest(self,nb=1):
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
@@ -90,6 +106,14 @@ class YTCommentThreadList():
       t.set_interest(self.dbsession)
       # A commit would be needed after the command ran.
       # A callback would be nice
+    return True
+  
+  def suspend_thread(self,tid,duration):
+    t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
+    if t:
+      t.suspend(self.dbsession,duration)
+      self.dbsession.merge(t)
+    return True
 
   def get_commentcount_for_video(self,yid):
     d=self.dbsession.query(YTCommentRecord).filter(YTCommentRecord.yid == yid).count()

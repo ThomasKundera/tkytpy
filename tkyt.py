@@ -72,7 +72,10 @@ class TkYt(metaclass=tksingleton.SingletonMeta):
     return self.commentthreadlist.get_thread_dict(tid)
 
   def force_refresh_thread(self,tid):
-    self.commentthreadlist.force_refresh_thread(tid)
+    return self.commentthreadlist.force_refresh_thread(tid)
+
+  def suspend_thread(self,tid,duration):
+    return self.commentthreadlist.suspend_thread(tid,duration)
 
   def get_unseen_new_threads(self):
     return {}
