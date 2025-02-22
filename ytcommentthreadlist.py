@@ -56,9 +56,12 @@ class YTCommentThreadList():
 
 
   def get_newest_threads_of_interest(self,nb=1):
+    now=datetime.datetime.now()
     threads=self.dbsession.query(YTCommentWorkerRecord).join(
       YTVideoRecord,YTVideoRecord.yid==YTCommentWorkerRecord.yid).filter(
         and_(YTCommentWorkerRecord.interest_level != 0,
+              or_ (YTCommentWorkerRecord.ignore_until == None,
+                   YTCommentWorkerRecord.ignore_until < now),
              YTVideoRecord.valid == True,
              YTVideoRecord.suspended ==False)
         ).order_by(YTCommentWorkerRecord.most_recent_reply.desc()).limit(nb)
