@@ -146,7 +146,7 @@ class YTCommentWorkerRecord0(SqlRecord,Base):
     logging.debug("YTCommentWorkerRecord.sql_task_threaded: END")
 
   def suspend(self,dbsession,duration, commit=True):
-    self.ignore_until=datetime.datetime.now()+datetime.timedelta(seconds=duration)
+    self.ignore_until=datetime.datetime.now()+datetime.timedelta(days=duration)
     if (commit):
       dbsession.commit()
 
