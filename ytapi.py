@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import time
 import datetime
 import json
@@ -54,8 +55,12 @@ class YtApiExecute:
       retry+=1
       try:
         return self.what(force,self.args)
-      except HttpError:
-        logging.debug("YtApiExecute.execute(): ERROR")
+      except HttpError as err:
+        logging.debug("YtApiExecute.execute(): ERROR ( "+str(err.code)+" )")
+        if (err.code == 403):
+            # This usually means we exceeded quota.
+            # We abort the whole thing
+            os._exit(-1)
         time.sleep(30)
     return None
 
