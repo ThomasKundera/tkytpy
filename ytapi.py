@@ -57,7 +57,7 @@ class YtApiExecute:
         return self.what(force,self.args)
       except HttpError as err:
         logging.debug("YtApiExecute.execute(): ERROR ( "+str(err.code)+" )")
-        if (err.code == 403):
+        if (err.resp.status == 403):
             # This usually means we exceeded quota.
             # We abort the whole thing
             os._exit(-1)
