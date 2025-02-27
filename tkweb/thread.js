@@ -40,6 +40,9 @@ function populate_top_buttons(div, tlc) {
   const mip2 = create_input('button', 'suspend_1w', tlc.cid)
   mip2.setAttribute('value', "Suspend a week");
   tbd.appendChild(mip2);
+  const mip3 = create_input('button', 'suspend_1d', tlc.cid)
+  mip3.setAttribute('value', "Suspend a day");
+  tbd.appendChild(mip3);
   div.append(tbd);
 }
 
@@ -100,6 +103,12 @@ async function manage_buttons(loc) {
         "command": "suspend_thread",
         "tid": loc.target.getAttribute("data-id"),
         "duration": 7
+      };
+    } else if (loc.target.getAttribute("name") == 'suspend_1d') {
+      request = {
+        "command": "suspend_thread",
+        "tid": loc.target.getAttribute("data-id"),
+        "duration": 1
       };
     }
   }
