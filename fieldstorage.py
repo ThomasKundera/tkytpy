@@ -5,7 +5,7 @@ from ytvideo import YTVideo
 
 class FieldStorage:
   def __init__(self):
-    Base.metadata.create_all()
+    #Base.metadata.create_all()
     return
 
 

@@ -4,7 +4,8 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
-from sqlalchemy.ext.declarative import declarative_base
+#from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 
 from threading import  Semaphore, get_ident
 
@@ -93,7 +94,12 @@ class SqlSingleton(metaclass=tksingleton.SingletonMeta):
   def close(self):
      self.engine.dispose()
 
-Base = declarative_base(bind=SqlSingleton('tkyttest').engine)
+#Base = declarative_base(bind=SqlSingleton('tkyttest').engine)
+# declarative base class
+class Base(DeclarativeBase):
+    pass
+
+Base.metadata.create_all(bind=SqlSingleton('tkyttest').engine)
 
 
 def classtest():

@@ -296,7 +296,7 @@ def test_refresh():
 
 def refresh_all():
   YtQueue(1)
-  Base.metadata.create_all()
+  #Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   YtQueue().meanpriority=10000
   #semaphore=Semaphore(1)
