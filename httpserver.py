@@ -11,7 +11,7 @@ import tksingleton
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
-  DIRECTORY = "/var/tkweb"
+  DIRECTORY = "/mnt/sdb1/anyone/tkytpy/tkweb"
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, directory=HttpHandler.DIRECTORY, **kwargs)
@@ -103,10 +103,10 @@ class EventHandler(metaclass=tksingleton.SingletonMeta):
     return self.tkyt.get_number_of_threads_of_interest()
 
   def get_oldest_threads_of_interest(self):
-    return self.tkyt.get_oldest_threads_of_interest(5)
+    return self.tkyt.get_oldest_threads_of_interest(2)
 
   def get_newest_threads_of_interest(self):
-    return self.tkyt.get_newest_threads_of_interest(5)
+    return self.tkyt.get_newest_threads_of_interest(8)
 
   def get_thread(self,tid):
     return self.tkyt.get_thread(tid)
