@@ -106,6 +106,10 @@ class YTVideoList:
     #dbsession.commit()
     # Video comments refresh then
     #semadict[yid].acquire()
+
+    # Only performing basic refresh of the metadata.
+    logging.debug(type(self).__name__+".do_refresh("+yid+"): END")
+    return
     options=Options()
     options.force_restart =True
     options.force_continue=True
