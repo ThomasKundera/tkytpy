@@ -35,7 +35,7 @@ class YtTask(SqlTaskUniq):
 # Thus, we can queue googleapi requests here,
 # without worrying of multitheads (hoppefully)
 class YtQueue(QueueWorkUniq):
-  def __init__(self,wait_time=10):
+  def __init__(self,wait_time=1):
     self.youtube=YtApi(wait_time)
     super().__init__()
 
