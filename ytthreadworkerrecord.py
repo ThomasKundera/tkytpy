@@ -78,7 +78,9 @@ class YTThreadWorkerRecord(SqlRecord,Base):
           maxResults=100)
     # We cannot use option here, we have to force a refresh
     result=request.execute(True)
-
+    if (not result):
+      logging.debug("YTThreadWorkerRecord.manage_first_request( "+self.yid+" ): ERROR "+str(result)+" not going further")
+      return (None,None,None)
     if (len(result['items']) == 0):
       raise # Should never occurs
     pintid=None
@@ -220,7 +222,9 @@ class YTThreadWorkerRecord(SqlRecord,Base):
         pageToken=self.nexttreadpagetoken,
         maxResults=100)
       result=request.execute(options.force_refresh)
-
+      if not result:
+        logging.debug("YTThreadWorkerRecord.sql_task_threaded(): not result")
+        return
     for thread in result['items']:
       if (not self.sql_handle_thread(dbsession,youtube,options,thread,pintid)):
         logging.debug("YTThreadWorkerRecord.sql_task_threaded(): break")
@@ -310,7 +314,7 @@ def refresh_all():
   semaphore=Semaphore(1)
   for v in dbsession.query(YTVideoRecord).order_by(YTVideoRecord.mostrecentme.desc()):
     #print(v.yid)
-    if (not v.suspended): # and (v.yid >= 'xPksF_JFNEI'):
+    if (not v.suspended and v.valid): # and (v.yid >= 'xPksF_JFNEI'):
       semaphore.acquire()
       v.call_sql_task_threaded_never_give_up(1000,semaphore)
       semaphore.acquire()
