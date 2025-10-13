@@ -11,7 +11,7 @@ import tksingleton
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
-  DIRECTORY = "/mnt/sdb1/anyone/tkytpy/tkweb"
+  DIRECTORY = "/home/anyone/tkytpy/tkweb"
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, directory=HttpHandler.DIRECTORY, **kwargs)
