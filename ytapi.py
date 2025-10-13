@@ -61,6 +61,9 @@ class YtApiExecute:
             # This usually means we exceeded quota.
             # We abort the whole thing
             os._exit(-1)
+        elif (err.resp.status == 404):
+          # Duno why, but lets abort
+          os._exit(-1)
         time.sleep(30)
     return None
 
