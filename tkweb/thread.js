@@ -134,8 +134,6 @@ area.addEventListener("click", function (loc) {
 });
 
 
-
-
 // On document load
 window.addEventListener("load", function () {
   const queryString = window.location.search;
