@@ -299,7 +299,7 @@ def test_refresh():
 
 
 def refresh_all():
-  YtQueue(1)
+  YtQueue(20)
   #Base.metadata.create_all()
   dbsession=SqlSingleton().mksession()
   YtQueue().meanpriority=10000
