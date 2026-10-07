@@ -100,16 +100,17 @@ class YTCommentThreadList():
 
   def force_refresh_thread(self,tid):
     t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)
+    interest_level=None
     if t:
       t.call_sql_task_threaded(0,options=True) # This should be safe, after looking.
       # Only annoying case is if exact same task is queued, it will
       # be discarded even if the other one has lower priority.
       # FIXME time.sleep(10) # This to have the thread updated.
       self.dbsession.merge(t) # FIXME: I have to better understand
-      t.set_interest(self.dbsession)
+      interest_level=t.set_interest(self.dbsession)
       # A commit would be needed after the command ran.
       # A callback would be nice
-    return True
+    return {'interest_level': interest_level}
   
   def suspend_thread(self,tid,duration):
     t=get_dbobject_if_exists(YTCommentWorkerRecord,tid,self.dbsession)

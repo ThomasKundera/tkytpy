@@ -37,6 +37,10 @@ function populate_top_buttons(div, tlc) {
   const mip = create_input('button', 'update', tlc.cid)
   mip.setAttribute('value', "Update Thread");
   tbd.appendChild(mip);
+  const interestDiv = document.createElement("div");
+  interestDiv.setAttribute('id', 'interest-level-' + tlc.cid);
+  interestDiv.textContent = "";
+  tbd.appendChild(interestDiv);
   const mip2 = create_input('button', 'suspend_1w', tlc.cid)
   mip2.setAttribute('value', "Suspend a week");
   tbd.appendChild(mip2);
@@ -81,6 +85,31 @@ async function update_thread(tid) {
   }
 }
 
+async function update_thread_with_feedback(tid, request) {
+  try {
+    const response = await fetch("http://localhost:8000/post", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(request)
+    });
+    const resulttext = await response.text();
+    const resultjson = JSON.parse(resulttext);
+    if (resultjson.interest_level !== undefined) {
+      const cid = request.tid;
+      const interestDiv = document.querySelector('#interest-level-' + cid);
+      if (interestDiv) {
+        interestDiv.textContent = "I_E: " + resultjson.interest_level;
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  update_thread(tid);
+}
+
 async function manage_buttons(loc) {
   if (!(loc.target && (
     loc.target.nodeName == "BUTTON" || loc.target.nodeName == "INPUT"))) {
@@ -98,6 +127,8 @@ async function manage_buttons(loc) {
         "command": "force_refresh_thread",
         "tid": loc.target.getAttribute("data-id")
       };
+      update_thread_with_feedback(tid, request);
+      return;
     } else if (loc.target.getAttribute("name") == 'suspend_1w') {
       request = {
         "command": "suspend_thread",
