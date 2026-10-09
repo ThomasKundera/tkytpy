@@ -37,16 +37,16 @@ function populate_top_buttons(div, tlc) {
   const mip = create_input('button', 'update', tlc.cid)
   mip.setAttribute('value', "Update Thread");
   tbd.appendChild(mip);
-  const interestDiv = document.createElement("div");
-  interestDiv.setAttribute('id', 'interest-level-' + tlc.cid);
-  interestDiv.textContent = "";
-  tbd.appendChild(interestDiv);
   const mip2 = create_input('button', 'suspend_1w', tlc.cid)
   mip2.setAttribute('value', "Suspend a week");
   tbd.appendChild(mip2);
   const mip3 = create_input('button', 'suspend_1d', tlc.cid)
   mip3.setAttribute('value', "Suspend a day");
   tbd.appendChild(mip3);
+  const interestDiv = document.createElement("div");
+  interestDiv.setAttribute('id', 'interest-level-' + tlc.cid);
+  interestDiv.textContent = "";
+  tbd.appendChild(interestDiv);
   div.append(tbd);
 }
 
@@ -104,6 +104,7 @@ async function update_thread_with_feedback(tid, request) {
         interestDiv.textContent = "I_E: " + resultjson.interest_level;
       }
     }
+    populate_thread(threadjson);
   } catch (e) {
     console.error(e);
   }

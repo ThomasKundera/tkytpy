@@ -108,13 +108,14 @@ class YTCommentWorkerRecord(YTCommentWorkerRecord0):
 
   def set_interest(self,dbsession,commit=True):
     logging.debug("YTCommentWorkerRecord.set_interest(): START")
-    self.compute_interest(dbsession,True)
+    interest_level=self.compute_interest(dbsession,True)
     #cwr=get_dbobject_if_exists(YTCommentWorkerRecord,self.tid,dbsession)
     #self.compute_interest(cwr)
     #self.interest_level=level
     logging.debug("YTCommentWorkerRecord.set_interest(): interest_level = "+str(self.interest_level))
     if (commit):
       dbsession.commit()
+    return interest_level
 
   def completed(self,dbsession):
     logging.debug("YTCommentWorkerRecord.completed(): START")
