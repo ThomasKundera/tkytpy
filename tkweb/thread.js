@@ -97,7 +97,7 @@ async function update_thread_with_feedback(tid, request) {
     });
     const resulttext = await response.text();
     const resultjson = JSON.parse(resulttext);
-    if (resultjson.interest_level !== undefined) {
+    if (resultjson.interest_level !== null) {
       const cid = request.tid;
       const interestDiv = document.querySelector('#interest-level-' + cid);
       if (interestDiv) {
